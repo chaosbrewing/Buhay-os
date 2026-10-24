@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Buhay.OS — Life Planner"
+description = "A responsive personal life planner for daily and weekly schedules, tasks, notes, reusable planning templates, and fast search."
+version = "1.0.0"
+id = "artifacts/life-planner"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21792
+
+[services.development]
+run = "pnpm --filter @workspace/life-planner run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/life-planner", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/life-planner/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21792"
+BASE_PATH = "/"

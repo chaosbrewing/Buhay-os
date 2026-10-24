@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Buhay.OS",
+    "slug": "buhay-os-mobile",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "buhay-os-mobile",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "blockedPermissions": [
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.USE_FULL_SCREEN_INTENT"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-notifications",
+      [
+        "react-native-alarm-scheduler",
+        {
+          "alarmKitUsageDescription": "Allow Buhay.OS to ring alarms you choose, even when the planner is closed. Alarm labels do not include private planner text.",
+          "addUseExactAlarmPermission": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

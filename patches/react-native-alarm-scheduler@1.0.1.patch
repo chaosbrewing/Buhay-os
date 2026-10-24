@@ -1,0 +1,95 @@
+--- a/ios/AlarmScheduler/AlarmSchedulerModule+Scheduling.swift
++++ b/ios/AlarmScheduler/AlarmSchedulerModule+Scheduling.swift
+@@ -16,6 +16,9 @@
+     let title = alarm.title?.isEmpty == false ? alarm.title! : "Alarm"
+     let weekdays = try normalizeWeekdays(alarm.weekdays)
+     let metadata = normalizeMetadata(alarm.ios?.metadata, id: id, title: title)
++    if let requested = alarm.timestamp, requested <= Date().timeIntervalSince1970 * 1000 {
++      throw InvalidAlarmException("The requested alarm time has passed.")
++    }
+     let timestamp = alarm.timestamp.flatMap { $0 > Date().timeIntervalSince1970 * 1000 ? Int64($0) : nil }
+       ?? nextTriggerTimestamp(hour: hour, minute: minute, weekdays: weekdays)
+     let runtimeSoundUri = normalizedSoundName(alarm.ios?.soundUri) ?? normalizedSoundName(alarm.soundUri)
+@@ -39,6 +39,7 @@
+         hour: hour,
+         minute: minute,
+         weekdays: weekdays,
++        fixedTimestamp: alarm.timestamp == nil ? nil : timestamp,
+         options: alarm.ios,
+         metadata: metadata,
+         soundName: soundName,
+@@ -78,20 +79,19 @@
+
+     #if canImport(AlarmKit)
+     if #available(iOS 26.0, *) {
+-      if let uuid = UUID(uuidString: id) {
+-        try? AlarmManager.shared.cancel(id: uuid)
++      var cancellationIDs = [UUID]()
++      if let uuid = UUID(uuidString: id) { cancellationIDs.append(uuid) }
++      if let backupId = AlarmSchedulerRescheduler.backupAlarmId(for: id) { cancellationIDs.append(backupId) }
++      cancellationIDs.append(contentsOf: AlarmSchedulerNativeAlarmStore.retryAlarmIds(for: id).compactMap(UUID.init(uuidString:)))
++      do {
++        let activeIDs = Set(try AlarmManager.shared.alarms.map(\.id))
++        for uuid in cancellationIDs where activeIDs.contains(uuid) {
++          try AlarmManager.shared.cancel(id: uuid)
++        }
+         didCancelNativeAlarm = true
+-      }
+-      if let backupId = AlarmSchedulerRescheduler.backupAlarmId(for: id) {
+-        try? AlarmManager.shared.cancel(id: backupId)
+-        didCancelNativeAlarm = true
+-      }
+-      for retryAlarmId in AlarmSchedulerNativeAlarmStore.retryAlarmIds(for: id) {
+-        guard let uuid = UUID(uuidString: retryAlarmId) else {
+-          continue
+-        }
+-        try? AlarmManager.shared.cancel(id: uuid)
+-        didCancelNativeAlarm = true
++      } catch {
++        // Preserve native metadata so cancellation can be retried safely.
++        return false
+       }
+       AlarmSchedulerNativeAlarmStore.clearRetryAlarmIds(for: id)
+     }
+@@ -283,6 +283,7 @@
+     hour: Int,
+     minute: Int,
+     weekdays: [Int],
++    fixedTimestamp: Int64? = nil,
+     options: IosAlarmOptionsRecord?,
+     metadata: [String: Any],
+     soundName: String?,
+@@ -317,7 +318,12 @@
+       metadata: AlarmSchedulerMetadata(alarmId: id, title: title, values: alarmKitMetadataValues(metadata)),
+       tintColor: Color.accentColor
+     )
+-    let schedule = try makeAlarmKitSchedule(hour: hour, minute: minute, weekdays: weekdays)
++    let schedule: Alarm.Schedule
++    if let fixedTimestamp {
++      schedule = .fixed(Date(timeIntervalSince1970: Double(fixedTimestamp) / 1000))
++    } else {
++      schedule = try makeAlarmKitSchedule(hour: hour, minute: minute, weekdays: weekdays)
++    }
+     let effectiveSoundName = alarmSchedulerEffectiveSoundName(soundName)
+     let stopIntent = makeStopIntent(
+       id: id,
+--- a/ios/AlarmScheduler/AlarmSchedulerModule.swift
++++ b/ios/AlarmScheduler/AlarmSchedulerModule.swift
+@@ -52,3 +52,6 @@
+-    AsyncFunction("cancelAlarmAsync") { (id: String) async -> Bool in
+-      return await self.cancel(id: id)
++    AsyncFunction("cancelAlarmAsync") { (id: String) async throws -> Bool in
++      guard await self.cancel(id: id) else {
++        throw InvalidAlarmException("Native alarm cancellation failed. Retry before clearing its record.")
++      }
++      return true
+     }
+--- a/android/src/main/java/expo/modules/alarm/AlarmScheduler.kt
++++ b/android/src/main/java/expo/modules/alarm/AlarmScheduler.kt
+@@ -42,3 +42,5 @@
+-    val triggerAtMillis = alarm.timestamp?.toLong()?.takeIf { it > System.currentTimeMillis() }
++    val triggerAtMillis = alarm.timestamp?.toLong()?.also {
++      require(it > System.currentTimeMillis()) { "The requested alarm time has passed." }
++    }
+       ?: nextTriggerAtMillis(hour, minute, weekdays)
+

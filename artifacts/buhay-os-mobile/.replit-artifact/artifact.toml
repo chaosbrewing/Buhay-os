@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/buhay-os-mobile/"
+title = "Buhay.OS — Mobile"
+description = "A native-first iOS and Android companion for Buhay.OS. Sign in to the existing account, unlock the same encrypted planner, and work with Today, Week, notes, quick capture, search, and connected Google Calendar events, with encrypted offline changes and conflict-safe sync."
+version = "1.0.0"
+id = "artifacts/buhay-os-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/buhay-os-mobile/" ]
+localPort = 23455
+
+[services.development]
+run = "pnpm --filter @workspace/buhay-os-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/buhay-os-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/buhay-os-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "23455"
+BASE_PATH = "/buhay-os-mobile/"

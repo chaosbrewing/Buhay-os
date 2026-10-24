@@ -1,0 +1,29 @@
+kind = "video"
+videoAspectRatio = "16:9"
+previewPath = "/buhay-os-daybook-film/"
+title = "Buhay.OS — Daybook Film"
+description = "A short animated product film introducing the Daybook life planner, its planning tools, and private encrypted account sync under the Buhay.OS brand."
+version = "1.0.0"
+id = "artifacts/buhay-os-daybook-film"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/buhay-os-daybook-film/" ]
+localPort = 20726
+
+[services.development]
+run = "pnpm --filter @workspace/buhay-os-daybook-film run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/buhay-os-daybook-film", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/buhay-os-daybook-film/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20726"
+BASE_PATH = "/buhay-os-daybook-film/"
