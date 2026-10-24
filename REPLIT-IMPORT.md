@@ -10,7 +10,6 @@ The connector can only read text files up to ~100 KB, so the files below were
 
 | File | Used by |
 | --- | --- |
-| `pnpm-lock.yaml` | whole workspace (too large to read; or regenerate with `pnpm install`) |
 | `attached_assets/buhay-os-lockup-cropped.png` | `artifacts/life-planner/src/App.tsx` (`@assets/...`) |
 | `artifacts/buhay-os-mobile/assets/images/icon.png` | `app.json` |
 | `artifacts/buhay-os-mobile/assets/images/wordmark.png` | `components/ui.tsx`, `app/(auth)/sign-in.tsx` |
@@ -29,6 +28,17 @@ The connector can only read text files up to ~100 KB, so the files below were
 - `attached_assets/Untitled_design_-_5_1791790561660.png`
 - `attached_assets/Untitled_design_-_6_1791790561659.png`
 - `attached_assets/buhayos_release1_1791810358953.docx`
+
+## Local changes after import
+
+- `pnpm-lock.yaml` was too large to import, so it was regenerated locally with
+  `pnpm install` (pnpm 11). Resolved versions may differ from the Replit lockfile.
+- `pnpm-workspace.yaml`: the win32-x64 native packages (esbuild, rollup,
+  lightningcss, tailwind oxide, ngrok) are no longer stripped by `overrides`,
+  and an `allowBuilds` block was added because pnpm 11 ignores
+  `onlyBuiltDependencies`.
+- `artifacts/buhay-os-daybook-film/tsconfig.json`: added the DOM `lib`, as in
+  `life-planner`. Without it, `pnpm run typecheck` failed (on Replit too).
 
 ## Intentionally skipped
 
