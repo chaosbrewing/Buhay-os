@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Link } from 'wouter';
-import { BookOpen, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutGrid, LayoutTemplate, NotebookPen, Repeat2, Settings as SettingsIcon, Sparkles, X } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
 
 type Icon = ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
 export type NavEntry = { href: string; label: string; icon: Icon };
@@ -21,11 +21,24 @@ export function buildNavGroups(enabled: Set<string>) {
     { id: 'rhythms', label: 'Habits & routines', items: [entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2)] },
   ];
   if (life.length) groups.push({ id: 'life', label: 'Life planning', items: life });
-  const plan = [entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), ...timeline];
-  const more = [entry('/projects', 'Projects', FolderKanban), entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2), entry('/templates', 'Templates', LayoutTemplate), ...life];
   const account = [entry('/settings', 'Settings', SettingsIcon), entry('/history', 'Versions', History)];
-  return { groups, plan, more, account };
+  // Phone tabs (founder decision D3, 2026-10-25): Today / Planner / Capture / Review / You.
+  const sheets: Record<PhoneSheetId, PhoneSheet> = {
+    planner: { label: 'Planner', eyebrow: 'Plan ahead', icon: CalendarRange, items: [
+      entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), entry('/projects', 'Projects', FolderKanban),
+      entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2), entry('/templates', 'Templates', LayoutTemplate),
+      ...[entry('/goals', 'Goals', Flag), entry('/life-areas', 'Life Areas', CircleHelp), entry('/search', 'Search', Search)].filter(on),
+    ] },
+    capture: { label: 'Capture', eyebrow: "Keep what's on your mind", icon: PenLine, items: [entry('/inbox', 'Inbox', Inbox), entry('/notes', 'Notes', NotebookPen)] },
+    review: { label: 'Review', eyebrow: 'Look back', icon: BookOpen, items: [entry('/reviews', 'Reviews', BookOpen), ...timeline].filter(on),
+      emptyNote: 'Reviews and Timeline are not switched on yet. Your planner data is unchanged.' },
+    you: { label: 'You', eyebrow: 'Your account and privacy', icon: UserRound, items: account },
+  };
+  return { groups, account, sheets };
 }
+
+type PhoneSheetId = 'planner' | 'capture' | 'review' | 'you';
+type PhoneSheet = { label: string; eyebrow: string; icon: Icon; items: NavEntry[]; emptyNote?: string };
 
 export function PlannerSidebarNav({ location, enabled }: { location: string; enabled: Set<string> }) {
   const { groups, account } = buildNavGroups(enabled);
@@ -64,39 +77,42 @@ function NavItem({ item, location, onNavigate }: { item: NavEntry; location: str
 }
 
 export function PlannerMobileNav({ location, enabled }: { location: string; enabled: Set<string> }) {
-  const { plan, more, account } = buildNavGroups(enabled);
-  const [sheet, setSheet] = useState<'plan' | 'more' | null>(null);
+  const { sheets } = buildNavGroups(enabled);
+  const [sheet, setSheet] = useState<PhoneSheetId | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const closeSheet = () => { setSheet(null); triggerRef.current?.focus(); };
   useEffect(() => { setSheet(null); }, [location]);
   useEffect(() => {
     if (!sheet) return;
-    sheetRef.current?.querySelector<HTMLElement>('a')?.focus();
+    (sheetRef.current?.querySelector<HTMLElement>('a') ?? sheetRef.current?.querySelector<HTMLElement>('button'))?.focus();
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setSheet(null); triggerRef.current?.focus(); } };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [sheet]);
-  const planActive = plan.some(i => i.href === location);
-  const moreActive = [...more, ...account].some(i => i.href === location);
-  const sheetItems = sheet === 'plan' ? plan : [...more, ...account];
-  const tab = (id: 'plan' | 'more', label: string, Icon: Icon, active: boolean) =>
-    <button type="button" className={`nav-link ${active || sheet === id ? 'active' : ''}`} aria-expanded={sheet === id} aria-controls={sheet === id ? 'mobile-nav-sheet' : undefined} aria-haspopup="dialog" onClick={event => { triggerRef.current = event.currentTarget; setSheet(s => s === id ? null : id); }} data-testid={`button-nav-${id}`}>
+  const tab = (id: PhoneSheetId) => {
+    const { label, icon: Icon, items } = sheets[id];
+    const active = items.some(i => i.href === location);
+    return <button type="button" className={`nav-link ${active || sheet === id ? 'active' : ''}`} aria-expanded={sheet === id} aria-controls={sheet === id ? 'mobile-nav-sheet' : undefined} aria-haspopup="dialog" onClick={event => { triggerRef.current = event.currentTarget; setSheet(s => s === id ? null : id); }} data-testid={`button-nav-${id}`}>
       <Icon size={18} aria-hidden /><span>{label}</span>
     </button>;
+  };
+  const open = sheet ? sheets[sheet] : null;
   return <>
-    {sheet && <div className="mobile-sheet-backdrop" onClick={closeSheet} aria-hidden="true" />}
-    {sheet && <div className="mobile-sheet" id="mobile-nav-sheet" ref={sheetRef} role="dialog" aria-label={sheet === 'plan' ? 'Plan' : 'More'} data-testid={`panel-nav-${sheet}`}>
-      <div className="mobile-sheet-head"><span className="eyebrow">{sheet === 'plan' ? 'Plan ahead' : 'More of your space'}</span>
+    {open && <div className="mobile-sheet-backdrop" onClick={closeSheet} aria-hidden="true" />}
+    {open && <div className="mobile-sheet" id="mobile-nav-sheet" ref={sheetRef} role="dialog" aria-label={open.label} data-testid={`panel-nav-${sheet}`}>
+      <div className="mobile-sheet-head"><span className="eyebrow">{open.eyebrow}</span>
         <button type="button" className="icon-btn" aria-label="Close menu" onClick={closeSheet} data-testid="button-close-nav-sheet"><X size={16} /></button></div>
-      <div className="mobile-sheet-grid">{sheetItems.map(i => <NavItem key={i.href} item={i} location={location} onNavigate={() => setSheet(null)} />)}</div>
+      {open.items.length
+        ? <div className="mobile-sheet-grid">{open.items.map(i => <NavItem key={i.href} item={i} location={location} onNavigate={() => setSheet(null)} />)}</div>
+        : <p className="mobile-sheet-note" role="status">{open.emptyNote}</p>}
     </div>}
     <nav className="mobile-nav" aria-label="Main navigation">
       <NavItem item={entry('/', 'Today', Flower2)} location={location} />
-      {tab('plan', 'Plan', CalendarRange, planActive)}
-      <NavItem item={entry('/inbox', 'Inbox', Inbox)} location={location} />
-      <NavItem item={entry('/notes', 'Notes', NotebookPen)} location={location} />
-      {tab('more', 'More', LayoutGrid, moreActive)}
+      {tab('planner')}
+      {tab('capture')}
+      {tab('review')}
+      {tab('you')}
     </nav>
   </>;
 }

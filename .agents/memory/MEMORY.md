@@ -6,4 +6,4 @@
 - [BUHAY.OS web-first scope](buhay-os-web-first-scope.md) — Keep releases web-only; hold the Expo companion until the user explicitly authorizes native work.
 - [Expo Router Stack children](expo-router-stack-children.md) — Keep Stack.Screen children flat; a fragment can crash Expo Router’s web preview.
 - [Live browser verification](live-browser-verification.md) — freeze hook structure during testing; distinguish Fast Refresh signature failures from fresh-page defects.
-- [Responsive navigation](navigation-scope.md) — five phone destinations and grouped collapsible desktop navigation are the approved direction.
+- [Responsive navigation](navigation-scope.md) — phone tabs Today/Planner/Capture/Review/You (D3, 2026-10-25) and grouped collapsible desktop navigation.

@@ -428,7 +428,6 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
       .calendar-notice{padding:11px 13px;border-radius:11px;margin:0 0 13px;font-size:12px;line-height:1.5}.calendar-notice.success{background:hsl(var(--secondary));color:hsl(var(--foreground))}.calendar-notice.error,.calendar-inline-error{color:#9b4d42}
       .calendar-inline-error{font-size:12px;line-height:1.5;margin:10px 0}.calendar-text-button{border:0;background:none;text-decoration:underline;color:inherit;padding:0 3px}
       .calendar-connection-skeleton{height:45px;border-radius:11px;background:hsl(var(--muted));animation:skeleton-pulse 1.5s infinite alternate}
-      @media(max-width:700px){.mobile-nav{grid-template-columns:repeat(7,1fr)}}
       @media(max-width:600px){.calendar-event{grid-template-columns:46px minmax(0,1fr);gap:12px;padding:15px}.calendar-event-day{padding-right:10px}.calendar-event-actions{grid-column:2;justify-content:flex-start}.calendar-event-copy h2{font-size:17px}.calendar-period{font-size:10px}}
     `}</style>
     <div className="page-heading">
