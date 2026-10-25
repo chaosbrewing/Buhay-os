@@ -44,6 +44,8 @@ import { parsePlannerBackup, serializePlannerBackup } from './planner-snapshot';
 import { localDateKey, offsetLocalDate, shiftLocalDate, localMonday } from './local-date';
 import { decryptSnapshot } from './planner-crypto';
 import { usePlannerVault } from './usePlannerVault';
+import { usePlanDrafts } from './usePlanDrafts';
+import PlanDraftSheet from '@/components/PlanDraftSheet';
 import { clearCalendarDraft } from './calendarDate';
 import { BackupImportDialog } from './BackupImportDialog';
 import { PlannerMobileNav, PlannerSidebarNav } from '@/components/PlannerNav';
@@ -95,6 +97,9 @@ const releaseTwoFlags = {
   lifeReviews: buildEnv.VITE_RELEASE_TWO_REVIEWS === 'true',
   unifiedSearch: buildEnv.VITE_RELEASE_TWO_SEARCH === 'true',
 };
+// Inbox plan drafts (UGNAY): a thought can become a plan the user reviews item by item.
+// Fails closed: on only when the flag is exactly 'true'.
+const planDraftsEnabled = buildEnv.VITE_UGNAY_PLAN_DRAFTS === 'true';
 const releaseTwoNavItems = [
   [plannerPath('/goals'), 'Goals', Flag, 'goalsAndMilestones'],
   [plannerPath('/life-areas'), 'Life Areas', CircleHelp, 'lifeAreas'],
@@ -316,6 +321,7 @@ function PlannerApp(){
   const resumeHabit=(id:string,date:string)=>{
     setData(current=>({...current,habits:(current.habits??[]).map(habit=>habit.id===id?resumePlannerHabit(habit,date):habit)}));
   };
+  const plans=usePlanDrafts({enabled:planDraftsEnabled,data,setData,makeId:uid,today,goalsEnabled:releaseTwoFlags.goalsAndMilestones,notify:setToast});
   const saveRoutine=(draft:Omit<PlannerRoutine,'id'>,id?:string)=>{
     const existing=id?(data.routines??[]).find(item=>item.id===id):undefined;
     const routine:PlannerRoutine=existing?{...existing,...draft,id:existing.id}:{...draft,id:uid()};
@@ -616,7 +622,7 @@ function PlannerApp(){
   const releaseTwoSection=releaseTwoRoutes[location];
   if(releaseTwoSection)return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<ReleaseTwoPage section={releaseTwoSection} data={data} isOnline={online} makeId={uid} onChange={next=>setData(next)} onOpenRecord={openPlannerRecord} featureFlags={releaseTwoFlags}/>)}</ErrorBoundary><Toaster/></TooltipProvider>;
   const releaseSection=location===plannerPath('/inbox')?'inbox':location===plannerPath('/habits')?'habits':location===plannerPath('/routines')?'routines':null;
-  if(releaseSection)return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<ReleaseOnePage section={releaseSection} inbox={data.inbox??[]} habits={data.habits??[]} routines={data.routines??[]} tasks={data.tasks} onSaveInbox={saveInbox} onDeleteInbox={deleteInbox} onConvertInbox={convertInbox} onSaveHabit={saveHabit} onDeleteHabit={deleteHabit} onToggleHabit={toggleHabit} onSetHabitProgress={setHabitProgress} onSetHabitSkipped={setHabitSkipped} onPauseHabit={pauseHabit} onResumeHabit={resumeHabit} onSaveRoutine={saveRoutine} onStartRoutine={startRoutine} onCompleteRoutineStep={correctRoutineStep} onDeleteRoutineRun={removeRoutineRun} onDeleteRoutine={deleteRoutine}/>)}</ErrorBoundary><Toaster/></TooltipProvider>;
+  if(releaseSection)return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<><ReleaseOnePage section={releaseSection} inbox={data.inbox??[]} habits={data.habits??[]} routines={data.routines??[]} tasks={data.tasks} onSaveInbox={saveInbox} onDeleteInbox={deleteInbox} onConvertInbox={convertInbox} onSaveHabit={saveHabit} onDeleteHabit={deleteHabit} onToggleHabit={toggleHabit} onSetHabitProgress={setHabitProgress} onSetHabitSkipped={setHabitSkipped} onPauseHabit={pauseHabit} onResumeHabit={resumeHabit} onSaveRoutine={saveRoutine} onStartRoutine={startRoutine} onCompleteRoutineStep={correctRoutineStep} onDeleteRoutineRun={removeRoutineRun} onDeleteRoutine={deleteRoutine} plans={planDraftsEnabled?{drafts:plans.drafts,onTurnIntoPlan:plans.turnIntoPlan,onOpenDraft:plans.openDraft}:undefined}/>{releaseSection==='inbox'&&plans.activeDraft&&<PlanDraftSheet key={plans.activeDraft.id} draft={plans.activeDraft} today={today()} onApprove={(itemId,fields)=>plans.approve(plans.activeDraft!.id,itemId,fields)} onDismissItem={itemId=>plans.dismissItem(plans.activeDraft!.id,itemId)} onAddStep={fields=>plans.addStep(plans.activeDraft!.id,fields)} onDismissPlan={()=>plans.dismissPlan(plans.activeDraft!.id)} onClose={plans.closeSheet}/>}</>)}</ErrorBoundary><Toaster/></TooltipProvider>;
   return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<Switch><Route path={plannerPath('/')}>{todayPage}</Route><Route path={plannerPath('/week')}>{weekPage}</Route><Route path={plannerPath('/projects')}><ProjectsPage projects={data.projects??[]} tasks={data.tasks} onSaveProject={saveProject} onDeleteProject={deleteProject} onAddTask={(projectId,parentTaskId)=>openTask(parentTaskId?data.tasks.find(task=>task.id===parentTaskId)?.dueDate??today():today(),undefined,projectId,parentTaskId)} onEditTask={task=>openTask(task.dueDate,task)} onToggleTask={toggleTask} onDeleteTask={deleteTask}/></Route><Route path={plannerPath('/calendar')}><CalendarPage preferredCalendarId={data.settings.preferredCalendarId} onPreferredCalendarChange={preferredCalendarId=>changeSettings({preferredCalendarId})}/></Route><Route path={plannerPath('/notes')}>{notesPage}</Route><Route path={plannerPath('/templates')}>{templatesPage}</Route><Route path={plannerPath('/settings')}><>{settingsPage}<div className="settings-grid" style={{maxWidth:1160,margin:'-40px auto 0',padding:'0 clamp(20px,5vw,64px) 60px'}}><GoogleCalendarSettingsCard/></div></></Route><Route path="/planner/history">{historyPage}</Route><Route component={NotFound}/></Switch>)}</ErrorBoundary><Toaster/></TooltipProvider>;
 }
 

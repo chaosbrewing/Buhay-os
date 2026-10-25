@@ -38,6 +38,7 @@ A private, end-to-end encrypted life planner: daily and weekly plans, projects, 
 - New planner fields are optional and additive. Unknown fields are preserved, and older snapshots load unchanged.
 - Google Calendar data stays outside the encrypted snapshot. Events are fetched through the API and never stored. Tokens are encrypted server-side.
 - Release 2 areas sit behind `VITE_RELEASE_TWO_*` flags (all `false` in `.replit`). Anything rendered without explicit flags fails closed.
+- Inbox plan drafts (UGNAY, `lib/planner-contract/src/ugnay.ts`) are behind `VITE_UGNAY_PLAN_DRAFTS` (`false` in `.replit`, on only when exactly `true`). A draft lives in the encrypted snapshot and changes the planner only when the user presses "Add to my planner" on an item. It carries no AI and makes no network calls.
 - Offline merges are timestamp- and tombstone-based. Divergent copies without a shared baseline are kept, not guessed.
 
 ## Product

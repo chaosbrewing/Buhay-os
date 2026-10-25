@@ -1,5 +1,9 @@
+import type { PlannerNote, PlannerTask } from '@workspace/planner-contract';
 import {
+  isPlannerDateKey,
   normalizeReleaseTwoData,
+  type PlannerGoal,
+  type PlannerRecordRef,
   type ReleaseTwoPlannerData,
   type ReleaseTwoRecordType,
 } from '@workspace/planner-contract/release2';
@@ -59,6 +63,8 @@ export type PlanDraftItem = {
 export type PlanDraft = {
   id: string;
   title: string;
+  /** The planner record this draft was started from (e.g. an Inbox item), if any. */
+  source?: PlannerRecordRef;
   origin: { capability: UgnayCapability; createdAt: string };
   items: PlanDraftItem[];
   /** Derived: open until every item is decided; approved if any item was approved. */
@@ -140,9 +146,14 @@ function validDraftItem(entry: unknown): entry is PlanDraftItem {
     (decided ? validTimestamp(entry.decidedAt) : entry.decidedAt === undefined);
 }
 
+function validSource(value: unknown): value is PlannerRecordRef {
+  return isObject(value) && recordTypes.has(value.type as string) && nonEmptyString(value.id);
+}
+
 function validDraft(entry: unknown): entry is PlanDraft {
   if (!isObject(entry) || !isObject(entry.origin)) return false;
   return nonEmptyString(entry.id) && nonEmptyString(entry.title) &&
+    (entry.source === undefined || validSource(entry.source)) &&
     isUgnayCapability(entry.origin.capability) && validTimestamp(entry.origin.createdAt) &&
     Array.isArray(entry.items) && entry.items.length > 0 && entry.items.every(validDraftItem) &&
     new Set(entry.items.map((item) => (item as PlanDraftItem).id)).size === entry.items.length &&
@@ -287,6 +298,7 @@ export function createPlanDraft(
   request: {
     capability: UgnayCapability;
     title: string;
+    source?: PlannerRecordRef;
     items: Array<Pick<PlanDraftItem, 'action' | 'target' | 'fields'>>;
   },
   now: string,
@@ -306,6 +318,7 @@ export function createPlanDraft(
   const draft: PlanDraft = {
     id: makeId(),
     title: request.title.trim(),
+    ...(request.source ? { source: { ...request.source } } : {}),
     origin: { capability: request.capability, createdAt: now },
     items,
     status: 'open',
@@ -368,6 +381,192 @@ export function withProvenance<T extends object>(
       approvedAt: item.decidedAt,
     },
   };
+}
+
+// ------------------------------------------------- applying approved items
+
+/** Record types a draft item can create or change today. Others are rejected, not guessed at. */
+export const APPLICABLE_RECORD_TYPES = ['task', 'note', 'goal'] as const;
+export type ApplicableRecordType = (typeof APPLICABLE_RECORD_TYPES)[number];
+
+export function isApplicableRecordType(value: unknown): value is ApplicableRecordType {
+  return (APPLICABLE_RECORD_TYPES as readonly string[]).includes(value as string);
+}
+
+const PRIORITIES = ['low', 'normal', 'high'];
+
+function optionalString(value: unknown, what: string): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') throw new Error(`${what} must be text.`);
+  return value.trim();
+}
+
+/**
+ * Whitelist and check the fields a draft may set on each record type, so a
+ * proposal can never overwrite an ID, a completion state, links or any other
+ * field it wasn't meant to touch. Only the fields given are returned.
+ */
+function cleanItemFields(type: ApplicableRecordType, fields: Record<string, unknown>, creating: boolean): Record<string, unknown> {
+  const allowed: Record<ApplicableRecordType, string[]> = {
+    task: ['title', 'description', 'dueDate', 'dueTime', 'tag', 'priority'],
+    note: ['title', 'content', 'date', 'tags'],
+    goal: ['title', 'description', 'targetDate'],
+  };
+  const unexpected = Object.keys(fields).filter((key) => !allowed[type].includes(key));
+  if (unexpected.length) throw new Error(`A ${type} can't be set from a plan draft: ${unexpected.join(', ')}.`);
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(fields)) {
+    const value = fields[key];
+    if (value === undefined) continue;
+    if (key === 'title') {
+      const title = optionalString(value, 'The title');
+      if (!title) throw new Error('A title is required.');
+      out.title = title;
+    } else if (key === 'dueDate' || key === 'date' || key === 'targetDate') {
+      if (!isPlannerDateKey(value)) throw new Error('Choose a valid date.');
+      out[key] = value;
+    } else if (key === 'dueTime') {
+      if (value !== '' && !(typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value))) throw new Error('Choose a valid time.');
+      out.dueTime = value;
+    } else if (key === 'priority') {
+      if (!PRIORITIES.includes(value as string)) throw new Error('Choose a valid priority.');
+      out.priority = value;
+    } else if (key === 'tags') {
+      if (!Array.isArray(value) || value.some((tag) => typeof tag !== 'string')) throw new Error('Tags must be a list of text.');
+      out.tags = value.map((tag: string) => tag.trim()).filter(Boolean);
+    } else {
+      out[key] = optionalString(value, `The ${key}`) ?? '';
+    }
+  }
+  if (creating) {
+    if (!out.title) throw new Error('A title is required.');
+    if (type === 'task' && !out.dueDate) throw new Error('A task needs a date.');
+    if (type === 'note' && !out.date) throw new Error('A note needs a date.');
+  }
+  return out;
+}
+
+/** The ID a created record gets, derived from its draft item so applying it twice (e.g. on two devices) never duplicates it. */
+export function draftRecordId(item: Pick<PlanDraftItem, 'id'>): string {
+  return `plan-${item.id}`;
+}
+
+function applyItem(
+  data: UgnayPlannerData,
+  draft: PlanDraft,
+  item: PlanDraftItem,
+  fieldOverrides?: Record<string, unknown>,
+): { data: UgnayPlannerData; recordId: string } {
+  if (!isApplicableRecordType(item.target.type)) {
+    throw new Error(`Plan drafts can't create or change a ${item.target.type} yet.`);
+  }
+  const type = item.target.type;
+  const fields = cleanItemFields(type, { ...item.fields, ...fieldOverrides }, item.action === 'create');
+  const collection = type === 'task' ? 'tasks' : type === 'note' ? 'notes' : 'goals';
+  const existing = (data[collection] ?? []) as Array<{ id: string }>;
+  const recordId = item.action === 'create' ? draftRecordId(item) : item.target.id!;
+  const current = existing.find((record) => record.id === recordId);
+
+  let record: Record<string, unknown>;
+  if (item.action === 'create') {
+    if (current) return { data, recordId }; // Already applied (for example synced from another device).
+    const base: Record<string, unknown> =
+      type === 'task' ? { id: recordId, dueTime: '', tag: '', completed: false, ...fields } as unknown as PlannerTask :
+        type === 'note' ? { id: recordId, content: '', tags: [], ...fields } as unknown as PlannerNote :
+          { id: recordId, status: 'active', ...fields } as unknown as PlannerGoal;
+    record = base;
+  } else {
+    if (!current) throw new Error('The item this change refers to no longer exists.');
+    record = { ...current, ...fields };
+  }
+  const stamped = withProvenance(record, draft, item);
+  const next = item.action === 'create'
+    ? [...existing, stamped]
+    : existing.map((candidate) => (candidate.id === recordId ? stamped : candidate));
+  return { data: { ...data, [collection]: next } as UgnayPlannerData, recordId };
+}
+
+/**
+ * The user's "add this to my planner" decision for one proposed item: records
+ * the approval and applies it in one step. Nothing changes if the item
+ * can't be applied (the error says why). Edits made while reviewing are
+ * passed as `fieldOverrides`.
+ */
+export function approvePlanDraftItem(
+  value: unknown,
+  draftId: string,
+  itemId: string,
+  now: string,
+  makeId: () => string,
+  fieldOverrides?: Record<string, unknown>,
+): UgnayPlannerData {
+  const data = normalizeUgnayData(value);
+  const draft = data.planDrafts?.find((candidate) => candidate.id === draftId);
+  const item = draft?.items.find((candidate) => candidate.id === itemId);
+  if (!draft || !item) throw new Error('That draft item no longer exists.');
+  if (item.status !== 'proposed') throw new Error('That draft item has already been decided.');
+
+  const items = draft.items.map((candidate) =>
+    candidate.id === itemId
+      ? { ...candidate, fields: { ...candidate.fields, ...fieldOverrides }, status: 'approved' as const, decidedAt: now }
+      : candidate);
+  const decided: PlanDraft = { ...draft, items, status: draftStatus(items), updatedAt: now };
+  const approvedItem = decided.items.find((candidate) => candidate.id === itemId)!;
+  const applied = applyItem(data, decided, approvedItem);
+  const planDrafts = applied.data.planDrafts!.map((candidate) => (candidate.id === draftId ? decided : candidate));
+  const audited = withAuditEvent({ ...applied.data, planDrafts }, {
+    at: now, actor: 'user', action: 'draft.item.approved', subjectIds: [draftId, itemId, applied.recordId],
+  }, makeId);
+  return markUgnayDataUsed(audited);
+}
+
+/** Add a proposed step to an existing draft (for example one the user typed in the review sheet). */
+export function addPlanDraftItem(
+  value: unknown,
+  draftId: string,
+  item: Pick<PlanDraftItem, 'action' | 'target' | 'fields'>,
+  now: string,
+  makeId: () => string,
+): UgnayPlannerData {
+  const data = normalizeUgnayData(value);
+  const draft = data.planDrafts?.find((candidate) => candidate.id === draftId);
+  if (!draft) throw new Error('That draft no longer exists.');
+  if (!isApplicableRecordType(item.target.type)) {
+    throw new Error(`Plan drafts can't create or change a ${item.target.type} yet.`);
+  }
+  const fields = cleanItemFields(item.target.type, item.fields, item.action === 'create');
+  const added: PlanDraftItem = {
+    id: makeId(), action: item.action, target: { ...item.target }, fields, status: 'proposed',
+  };
+  const items = [...draft.items, added];
+  const updated: PlanDraft = { ...draft, items, status: draftStatus(items), updatedAt: now };
+  const planDrafts = data.planDrafts!.map((candidate) => (candidate.id === draftId ? updated : candidate));
+  return markUgnayDataUsed(withAuditEvent({ ...data, planDrafts }, {
+    at: now, actor: 'user', action: 'draft.item.added', subjectIds: [draftId, added.id],
+  }, makeId));
+}
+
+/** Dismiss every item in a draft that hasn't been decided. Already approved items stay as they are. */
+export function dismissPlanDraft(value: unknown, draftId: string, now: string, makeId: () => string): UgnayPlannerData {
+  const data = normalizeUgnayData(value);
+  const draft = data.planDrafts?.find((candidate) => candidate.id === draftId);
+  if (!draft) throw new Error('That draft no longer exists.');
+  const pending = draft.items.filter((item) => item.status === 'proposed');
+  if (!pending.length) return data;
+  const items = draft.items.map((item) =>
+    item.status === 'proposed' ? { ...item, status: 'dismissed' as const, decidedAt: now } : item);
+  const updated: PlanDraft = { ...draft, items, status: draftStatus(items), updatedAt: now };
+  const planDrafts = data.planDrafts!.map((candidate) => (candidate.id === draftId ? updated : candidate));
+  return markUgnayDataUsed(withAuditEvent({ ...data, planDrafts }, {
+    at: now, actor: 'user', action: 'draft.dismissed', subjectIds: [draftId, ...pending.map((item) => item.id)],
+  }, makeId));
+}
+
+/** Drafts that still have something to decide, newest first. */
+export function openPlanDrafts(value: unknown): PlanDraft[] {
+  return [...(normalizeUgnayData(value).planDrafts ?? [])]
+    .filter((draft) => draft.status === 'open')
+    .sort((left, right) => right.origin.createdAt.localeCompare(left.origin.createdAt) || right.id.localeCompare(left.id));
 }
 
 // ------------------------------------------------------------------- merge
