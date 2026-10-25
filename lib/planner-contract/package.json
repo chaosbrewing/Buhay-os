@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./release2": "./src/release2.ts",
     "./release2-merge": "./src/release2-merge.ts",
-    "./ugnay": "./src/ugnay.ts"
+    "./ugnay": "./src/ugnay.ts",
+    "./bakas": "./src/bakas.ts"
   },
   "scripts": {
     "test": "node --experimental-strip-types --test src/*.test.mjs"
