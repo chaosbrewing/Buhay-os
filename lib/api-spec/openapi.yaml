@@ -116,6 +116,15 @@ paths:
                 $ref: "#/components/schemas/CalendarConnection"
         "401":
           description: Sign-in is required
+    delete:
+      operationId: disconnectGoogleCalendar
+      tags: [calendar]
+      summary: Remove the signed-in user's Google Calendar connection
+      responses:
+        "204":
+          description: Connection removed
+        "401":
+          description: Sign-in is required
   /planner/calendar/google/calendars:
     get:
       operationId: listGoogleCalendars
@@ -160,15 +169,6 @@ paths:
           description: Google Calendar access must be updated to list calendars
         "502":
           description: Google Calendar could not validate calendars
-    delete:
-      operationId: disconnectGoogleCalendar
-      tags: [calendar]
-      summary: Remove the signed-in user's Google Calendar connection
-      responses:
-        "204":
-          description: Connection removed
-        "401":
-          description: Sign-in is required
   /planner/calendar/google/authorize:
     get:
       operationId: authorizeGoogleCalendar

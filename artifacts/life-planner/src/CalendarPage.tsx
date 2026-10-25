@@ -83,7 +83,7 @@ export function GoogleCalendarSettingsCard() {
     const callback = url.searchParams.get('calendar');
     if (callback === 'connected' || callback === 'error') {
       setCallbackMessage(callback === 'connected'
-        ? { kind: 'success', text: 'Google Calendar is connected to this Daybook account.' }
+        ? { kind: 'success', text: 'Google Calendar is connected to this Buhay.OS account.' }
         : { kind: 'error', text: 'Google Calendar could not be connected. Please try again.' });
       url.searchParams.delete('calendar');
       window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
@@ -94,7 +94,7 @@ export function GoogleCalendarSettingsCard() {
 
   return <section className="surface settings-card calendar-settings-card" aria-labelledby="google-calendar-settings-title" data-testid="card-google-calendar-settings">
     <style>{`.calendar-settings-card{grid-column:1/-1}.calendar-settings-heading{display:flex;align-items:center;gap:12px;margin-bottom:12px}.calendar-settings-heading h2{margin:0 0 3px}.calendar-settings-heading p{margin:0}.calendar-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:hsl(var(--secondary));color:hsl(var(--primary))}.calendar-privacy-copy,.calendar-security-note{font-size:12px;line-height:1.65;color:hsl(var(--muted-foreground));margin:0 0 15px}.calendar-security-note{margin:12px 0}.calendar-consent{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--background));font-size:12px;line-height:1.55;margin-bottom:14px}.calendar-consent input{accent-color:hsl(var(--primary));width:17px;height:17px;flex:0 0 auto}.calendar-connected-state{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600}.calendar-status-dot{width:8px;height:8px;border-radius:50%;background:#668f70}.calendar-notice{padding:11px 13px;border-radius:11px;margin:0 0 13px;font-size:12px;line-height:1.5}.calendar-notice.success{background:hsl(var(--secondary));color:hsl(var(--foreground))}.calendar-notice.error,.calendar-inline-error{color:#9b4d42}.calendar-inline-error{font-size:12px;line-height:1.5;margin:10px 0}.calendar-text-button{border:0;background:none;text-decoration:underline;color:inherit;padding:0 3px}.calendar-connection-skeleton{height:45px;border-radius:11px;background:hsl(var(--muted));animation:skeleton-pulse 1.5s infinite alternate}`}</style>
-    <div className="calendar-settings-heading"><span className="calendar-mark"><CalendarDays size={18}/></span><div><h2 id="google-calendar-settings-title">Google Calendar</h2><p>Bring your own calendar into Daybook.</p></div></div>
+    <div className="calendar-settings-heading"><span className="calendar-mark"><CalendarDays size={18}/></span><div><h2 id="google-calendar-settings-title">Google Calendar</h2><p>Bring your own calendar into Buhay.OS.</p></div></div>
     {callbackMessage && <div className={`calendar-notice ${callbackMessage.kind}`} role={callbackMessage.kind === 'error' ? 'alert' : 'status'} data-testid="status-calendar-callback">
       {callbackMessage.text}
       {callbackMessage.kind === 'error' && <> <a href="/planner/calendar" data-testid="link-calendar-draft-recovery">Return to the calendar to restore any saved event draft.</a></>}
@@ -104,7 +104,7 @@ export function GoogleCalendarSettingsCard() {
       connection.data?.connected ? <>
         <div className="calendar-connected-state" data-testid="status-google-calendar-connected"><span className="calendar-status-dot"/><span>{connection.data.reauthorizationRequired ? 'Google Calendar access needs renewal' : 'Connected for this account'}</span></div>
         {connection.data.reauthorizationRequired && <div className="calendar-notice error" role="alert" data-testid="notice-google-calendar-reauthorization">
-          Google no longer accepts this connection. Reconnect to continue; your saved calendar choices and other Daybook data will stay in place.
+          Google no longer accepts this connection. Reconnect to continue; your saved calendar choices and other Buhay.OS data will stay in place.
           <div style={{marginTop:10}}><GoogleCalendarReconnectButton/></div>
         </div>}
         <p className="calendar-security-note">Calendar-list display choices are saved to this account. Your preferred writable destination and task-to-event links stay in the encrypted planner snapshot. Event details are handled transiently by the server and are not copied into that snapshot.</p>
@@ -114,10 +114,10 @@ export function GoogleCalendarSettingsCard() {
           {disconnect.isPending ? 'Disconnecting…' : 'Disconnect Google Calendar'}
         </button>
       </> : <>
-        <p className="calendar-privacy-copy">Daybook reads available Google calendar names so you can choose what to show. When you create or edit events, Daybook sends event titles, descriptions, locations, dates, times, and time zones to Google. Google returns event details, which Daybook displays here. Event details are handled transiently; your preferred destination and task-to-event references remain in your encrypted planner snapshot.</p>
+        <p className="calendar-privacy-copy">Buhay.OS reads available Google calendar names so you can choose what to show. When you create or edit events, Buhay.OS sends event titles, descriptions, locations, dates, times, and time zones to Google. Google returns event details, which Buhay.OS displays here. Event details are handled transiently; your preferred destination and task-to-event references remain in your encrypted planner snapshot.</p>
         <label className="calendar-consent" htmlFor="calendar-consent">
           <input id="calendar-consent" type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} data-testid="checkbox-google-calendar-consent"/>
-          <span>I understand that Daybook reads my Google calendar names and sends event details to Google when I create or edit events, then displays details returned by Google.</span>
+          <span>I understand that Buhay.OS reads my Google calendar names and sends event details to Google when I create or edit events, then displays details returned by Google.</span>
         </label>
         {notice && <p className="calendar-inline-error" role="alert" data-testid="error-calendar-consent">{notice}</p>}
         <button className="btn btn-primary" disabled={!consent} onClick={() => {
@@ -178,8 +178,8 @@ function GoogleCalendarChooser() {
 
   return <section className="calendar-selection" aria-labelledby="calendar-selection-title" data-testid="section-google-calendar-selection">
     <style>{`.calendar-selection{margin:16px 0;padding:15px;border:1px solid hsl(var(--border));border-radius:13px;background:hsl(var(--background))}.calendar-selection h3{font:600 13px var(--app-font-sans);margin:0 0 4px}.calendar-selection-copy{font-size:11px;line-height:1.5;color:hsl(var(--muted-foreground));margin:0 0 11px}.calendar-choice-list{display:grid;gap:7px}.calendar-choice{display:flex;align-items:flex-start;gap:10px;padding:10px 11px;border:1px solid hsl(var(--border));border-radius:10px;background:hsl(var(--card));font-size:12px;cursor:pointer}.calendar-choice input{accent-color:hsl(var(--primary));width:16px;height:16px;flex:0 0 auto;margin:1px 0 0}.calendar-choice-copy{display:grid;gap:2px;min-width:0}.calendar-choice-copy strong{font-weight:600;overflow-wrap:anywhere}.calendar-choice-copy small{font-size:10px;color:hsl(var(--muted-foreground))}.calendar-selection-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px}.calendar-selection-status{font-size:11px;color:hsl(var(--muted-foreground))}.calendar-selection-error{font-size:11px;color:#9b4d42;margin:8px 0 0}`}</style>
-    <h3 id="calendar-selection-title">Calendars shown in Daybook</h3>
-    <p className="calendar-selection-copy">Choose which Google calendars appear on your calendar page. This choice is saved to your Daybook account.</p>
+    <h3 id="calendar-selection-title">Calendars shown in Buhay.OS</h3>
+    <p className="calendar-selection-copy">Choose which Google calendars appear on your calendar page. This choice is saved to your Buhay.OS account.</p>
     {calendars.isLoading ? <div className="calendar-connection-skeleton" aria-label="Loading available calendars"/> :
       calendars.isError ? <div className="calendar-inline-error" role="alert" data-testid="error-google-calendar-list">
         {calendarErrorCode === 'GOOGLE_REAUTH_REQUIRED'
@@ -439,11 +439,11 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
     {connection.isLoading ? <div className="calendar-loading" aria-label="Loading calendar connection"><span/><span/></div> :
       connection.isError ? <section className="surface"><div className="empty-state"><div className="empty-art"><CalendarDays size={20}/></div><strong>Calendar connection is unavailable.</strong><span>Check your connection, then try again.</span><button className="btn btn-quiet" onClick={refresh} data-testid="button-retry-calendar">{'Try again'}</button></div></section> :
       !connection.data?.connected ? <section className="surface"><div className="empty-state" data-testid="state-calendar-not-connected"><div className="empty-art"><CalendarDays size={20}/></div><strong>Your calendar is still yours.</strong><span>Connect Google Calendar in Settings to see and manage your events here.</span></div></section> :
-      connection.data.reauthorizationRequired ? <section className="surface"><div className="empty-state" role="alert" data-testid="error-calendar-reauthorization"><div className="empty-art"><CalendarDays size={20}/></div><strong>Google Calendar access needs renewal.</strong><span>Reconnect to restore calendar access. Your saved calendar choices and other Daybook data are safe.</span><GoogleCalendarReconnectButton/></div></section> :
+      connection.data.reauthorizationRequired ? <section className="surface"><div className="empty-state" role="alert" data-testid="error-calendar-reauthorization"><div className="empty-art"><CalendarDays size={20}/></div><strong>Google Calendar access needs renewal.</strong><span>Reconnect to restore calendar access. Your saved calendar choices and other Buhay.OS data are safe.</span><GoogleCalendarReconnectButton/></div></section> :
       eventQuery.isLoading ? <div className="calendar-loading" aria-label="Loading events" data-testid="state-calendar-loading"><span/><span/><span/></div> :
       eventQuery.isError ? <section className="surface"><div className="empty-state" role="alert" data-testid="error-calendar-events"><div className="empty-art"><CalendarDays size={20}/></div>
         {eventErrorCode === 'GOOGLE_REAUTH_REQUIRED' || eventErrorCode === 'GOOGLE_ACCESS_UPDATE_REQUIRED'
-          ? <><strong>Google Calendar access needs renewal.</strong><span>Reconnect to restore calendar access. Your saved calendar choices and other Daybook data are safe.</span><GoogleCalendarReconnectButton label={eventErrorCode === 'GOOGLE_REAUTH_REQUIRED' ? 'Reconnect Google Calendar' : 'Grant Google Calendar access'}/></>
+          ? <><strong>Google Calendar access needs renewal.</strong><span>Reconnect to restore calendar access. Your saved calendar choices and other Buhay.OS data are safe.</span><GoogleCalendarReconnectButton label={eventErrorCode === 'GOOGLE_REAUTH_REQUIRED' ? 'Reconnect Google Calendar' : 'Grant Google Calendar access'}/></>
           : <><strong>Events did not come through.</strong><span>Google Calendar may be taking a moment to respond.</span><button className="btn btn-quiet" onClick={() => void eventQuery.refetch()} data-testid="button-retry-calendar-events">Try again</button></>}
       </div></section> :
       <>

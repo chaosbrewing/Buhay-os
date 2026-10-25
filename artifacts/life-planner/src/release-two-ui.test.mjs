@@ -35,3 +35,13 @@ test('Release 2 flags hide navigation and direct routes preserve saved data when
   assert.match(page, /if \(!enabled\) return <main className="r2-page" role="status">/);
   assert.match(page, /Your planner data remains unchanged\./);
 });
+
+test('Release 2 page fails closed when no feature flags are passed', () => {
+  assert.match(page, /const flags = props\.featureFlags \?\? RELEASE_TWO_FLAGS_OFF;/);
+  assert.match(page, /createContext<Record<ReleaseTwoFeature, boolean>>\(RELEASE_TWO_FLAGS_OFF\)/);
+  assert.doesNotMatch(page, /\?\? RELEASE_TWO_FEATURE_FLAGS/);
+  const offFlags = /const RELEASE_TWO_FLAGS_OFF[^=]*= \{([^}]*)\}/.exec(page)?.[1] ?? '';
+  const values = [...offFlags.matchAll(/(\w+): (true|false)/g)];
+  assert.equal(values.length, 6);
+  assert.ok(values.every(([, , value]) => value === 'false'));
+});

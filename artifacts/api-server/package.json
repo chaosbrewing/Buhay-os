@@ -8,7 +8,7 @@
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "set -e; mkdir -p dist; trap 'rm -f dist/calendarSelection.test.mjs dist/plannerContract.test.mjs' EXIT; ./node_modules/.bin/esbuild src/routes/calendarSelection.test.mjs --bundle --platform=node --format=esm --external:express --outfile=dist/calendarSelection.test.mjs; ./node_modules/.bin/esbuild src/routes/plannerContract.test.mjs --bundle --platform=node --format=esm --outfile=dist/plannerContract.test.mjs; node --experimental-strip-types --test src/lib/calendarCore.test.mjs dist/calendarSelection.test.mjs dist/plannerContract.test.mjs"
+    "test": "set -e; mkdir -p dist; trap 'rm -f dist/calendarSelection.test.mjs dist/plannerContract.test.mjs' EXIT; ./node_modules/.bin/esbuild src/routes/calendarSelection.test.mjs --bundle --platform=node --format=esm --external:express --outfile=dist/calendarSelection.test.mjs; ./node_modules/.bin/esbuild src/routes/plannerContract.test.mjs --bundle --platform=node --format=esm --outfile=dist/plannerContract.test.mjs; node --experimental-strip-types --test src/lib/calendarCore.test.mjs src/routes/apiSpecRoutes.test.mjs dist/calendarSelection.test.mjs dist/plannerContract.test.mjs"
   },
   "dependencies": {
     "@clerk/express": "^2.1.78",
