@@ -11,6 +11,12 @@ import {
   type PlannerRecordLink,
   type ReleaseTwoPlannerData,
 } from '@workspace/planner-contract/release2';
+import {
+  hasUgnayData,
+  mergeUgnayCollections,
+  normalizeUgnayData,
+  type UgnayPlannerData,
+} from '@workspace/planner-contract/ugnay';
 
 type ReleaseTwoCollectionKey = 'goals' | 'milestones' | 'lifeAreas' | 'links' | 'reviews';
 type ReleaseTwoRecord = PlannerGoal | PlannerMilestone | PlannerLifeArea | PlannerRecordLink | PlannerLifeReview;
@@ -153,6 +159,13 @@ function mergeOptionalCollections(
   }
   const version = maxSchemaVersion(...groups.flat());
   if (version > 1 || 'schemaVersion' in result) result.schemaVersion = version;
+  // UGNAY's grants, drafts and audit log would otherwise be taken whole from
+  // one copy. Only runs when some copy has them, so older snapshots merge
+  // exactly as before.
+  const copies = groups.flat() as UgnayPlannerData[];
+  if (copies.some((copy) => hasUgnayData(copy as Record<string, unknown>))) {
+    return normalizeUgnayData({ ...result, ...mergeUgnayCollections(copies) });
+  }
   return normalizeReleaseTwoData(result);
 }
 
