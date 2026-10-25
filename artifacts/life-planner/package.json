@@ -8,7 +8,7 @@
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "TZ=Pacific/Kiritimati node --experimental-strip-types --test src/*.test.mjs",
+    "test": "node --experimental-strip-types --import ./src/test-timezone.mjs --test \"src/*.test.mjs\"",
     "test:e2e": "playwright test -c playwright.calendar.config.mjs",
     "test:e2e:calendar": "playwright test -c playwright.calendar.config.mjs tests/e2e/calendar-recovery.spec.mjs",
     "test:e2e:recurrence": "playwright test -c playwright.recurrence.config.mjs",

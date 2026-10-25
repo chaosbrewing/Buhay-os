@@ -20,12 +20,15 @@ Sign in with the existing account, then enter the separate planner encryption pa
 - Account sign-in and verification through the existing Clerk tenant.
 - Encrypted snapshot unlock and sync using the existing PBKDF2-SHA256 (310,000 iterations), AES-GCM-256 envelope.
 - Today, Week, notes, local search, task completion/editing, quick capture, recurring tasks, private local task reminders, and light/dark themes.
+- Projects with one-level subtasks and task priorities; the Inbox with conversion to tasks or notes; habits (yes/no and measurable, skip, pause, weekly history, streaks); routines with step-by-step runs (Space tab, `app/(app)/(tabs)/organize.tsx`).
+- Creating a Google Calendar event from a task in Capture (`app/(app)/capture.tsx`), using the existing server connection.
+- Release 2 records: goals, milestones, life areas, private reflections and links between records (`app/(app)/life.tsx`).
 - Read-only Google Calendar event viewing through the existing server connection. Connect/reconnect Google Calendar in the web planner; no Google OAuth secret is sent to the app.
 - Offline access to a previously unlocked encrypted snapshot, with revision checks and copy-preserving conflict handling.
 
 Calendar events are not part of the encrypted planner snapshot. Account-level private content remains encrypted before it reaches the server. Search only indexes the locally decrypted planner while it is unlocked.
 
-Projects, priorities, subtasks, a dedicated Inbox model, habits/routines, task-to-calendar event creation, and other Release 1 capabilities are not claimed as functional here. They require compatible shared planner/API contracts first. Version history, JSON backup import/export, Markdown export, and the existing template editor remain in the web planner.
+These capabilities use the shared planner contract (`@workspace/planner-contract`) and the same encrypted snapshot as the web planner, and their logic is covered by the unit tests below. None of them has been verified on a physical device, and the companion is on hold except for device alarms (web-first release scope). Version history, JSON backup import/export, Markdown export and the template editor remain in the web planner.
 
 ## Expo Go and development builds
 

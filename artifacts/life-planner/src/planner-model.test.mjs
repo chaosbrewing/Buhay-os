@@ -208,3 +208,14 @@ test('user-facing copy says Buhay.OS, while internal daybook storage keys are pr
   assert.match(cache, /'daybook\.encrypted-cache\.v1'/);
   assert.match(cache, /`daybook\.account-cache\.v2:/);
 });
+
+test('Week view tasks can be edited as well as completed', () => {
+  const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('data-testid="grid-week"');
+  const week = app.slice(start, app.indexOf('className="surface week-notes"', start));
+  assert.ok(week.length > 0, 'Week grid markup not found');
+  assert.match(week, /className="day-task-check" aria-pressed=\{done\}/);
+  assert.match(week, /onClick=\{\(\)=>toggleTask\(task\.id,task\.occurrenceDate,task\.seriesTaskId,task\.completed\)\}/);
+  assert.match(week, /className="day-task-open" aria-label=\{`Edit \$\{task\.title\}`\} onClick=\{\(\)=>openTask\(task\.dueDate,task\)\}/);
+  assert.doesNotMatch(week, /role="button"/);
+});

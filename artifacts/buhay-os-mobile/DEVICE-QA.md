@@ -81,3 +81,9 @@ Use a non-production test account and planner with no sensitive content. Record 
 The browser-based mobile test was extended to reload the Expo web app before reconnecting, confirm the unsynced edit restores from its encrypted local cache, then reconnect and exercise revision-conflict merging. This is not evidence of native AsyncStorage, native network transitions, or device restart behavior.
 
 The authenticated sync E2E suite was not run in this workspace because no disposable test API, Clerk test instance, or dedicated test accounts were configured. The runner rejects production API origins and the README documents the test-only configuration and cleanup boundary. Do not replace the missing test setup with production credentials or production planner data.
+
+## 2026-10-25 workspace check (no device)
+
+- `pnpm --filter @workspace/buhay-os-mobile run test` — **Passed: 41 tests** (the suite has grown since the 15-test entry above; it now also covers local task reminders, device-alarm core logic and Release 2 snapshot round-trips). Run on Windows through Git Bash.
+- No physical iOS or Android device, development build or Expo Go session was used. Every device row above remains **Not run**.
+
