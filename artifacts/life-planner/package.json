@@ -13,7 +13,8 @@
     "test:e2e:calendar": "playwright test -c playwright.calendar.config.mjs tests/e2e/calendar-recovery.spec.mjs",
     "test:e2e:recurrence": "playwright test -c playwright.recurrence.config.mjs",
     "test:e2e:release-two": "playwright test -c playwright.release-two.config.mjs",
-    "test:e2e:habits": "playwright test -c playwright.habits.config.mjs"
+    "test:e2e:habits": "playwright test -c playwright.habits.config.mjs",
+    "test:e2e:memory": "playwright test -c playwright.memory.config.mjs"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",

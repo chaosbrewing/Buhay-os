@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   ArrowDown,
   ArrowUp,
+  Brain,
   Check,
   CheckCircle2,
   Clipboard,
@@ -45,6 +46,8 @@ export type ReleaseOnePageProps = {
   onDeleteRoutine: (id: string) => void;
   /** Present only when plan drafts are switched on (VITE_UGNAY_PLAN_DRAFTS); absent means the feature is off. */
   plans?: { drafts: PlanDraft[]; onTurnIntoPlan: (item: InboxItem) => void; onOpenDraft: (draftId: string) => void };
+  /** Present only when Memory is switched on (VITE_BAKAS_MEMORIES); absent means the feature is off. */
+  memory?: { onRemember: (item: InboxItem) => void };
 };
 
 function PlanButton({ item, plans }: { item: InboxItem; plans: NonNullable<ReleaseOnePageProps['plans']> }) {
@@ -323,6 +326,7 @@ export default function ReleaseOnePage({
   onPauseHabit,
   onResumeHabit,
   plans,
+  memory,
 }: ReleaseOnePageProps) {
   const [editor, setEditor] = useState<EditorState>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ kind: 'inbox' | 'habit' | 'routine'; id: string; title: string } | null>(null);
@@ -580,6 +584,7 @@ export default function ReleaseOnePage({
                 <button type="button" onClick={() => onConvertInbox(item.id, 'task')} data-testid={`button-convert-inbox-task-${item.id}`}><Check size={14} /> Make a task</button>
                 <button type="button" onClick={() => onConvertInbox(item.id, 'note')} data-testid={`button-convert-inbox-note-${item.id}`}><FileText size={14} /> Keep as a note</button>
                 {plans && <PlanButton item={item} plans={plans} />}
+                {memory && <button type="button" onClick={() => memory.onRemember(item)} data-testid={`button-remember-inbox-${item.id}`}><Brain size={14} /> Remember this</button>}
               </div>
             </article>
           ))}

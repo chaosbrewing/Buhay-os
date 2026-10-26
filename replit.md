@@ -40,6 +40,7 @@ A private, end-to-end encrypted life planner: daily and weekly plans, projects, 
 - Release 2 areas sit behind `VITE_RELEASE_TWO_*` flags (all `false` in `.replit`). Anything rendered without explicit flags fails closed.
 - Inbox plan drafts (UGNAY, `lib/planner-contract/src/ugnay.ts`) are behind `VITE_UGNAY_PLAN_DRAFTS` (`false` in `.replit`, on only when exactly `true`). A draft lives in the encrypted snapshot and changes the planner only when the user presses "Add to my planner" on an item. It carries no AI and makes no network calls.
 - BAKAS memories (`lib/planner-contract/src/bakas.ts`) are an optional encrypted `memories` list. Nothing in the UI uses them yet. Guesses stay labelled as guesses, corrections keep the earlier wording, and deleting erases the content. Another capability reads memories only with an active UGNAY `memory.read` grant, and never private ones.
+- The Memory page and "Remember this" on notes and Inbox thoughts are behind `VITE_BAKAS_MEMORIES` (`false` in `.replit`, on only when exactly `true`). They show memories directly to the person who owns them (never through the grant-checked retrieval other capabilities use), save only memories the user confirmed, and make no network calls.
 - Offline merges are timestamp- and tombstone-based. Divergent copies without a shared baseline are kept, not guessed.
 
 ## Product
@@ -56,6 +57,7 @@ Recorded decisions are in `.agents/memory/` (index: `MEMORY.md`): E2E encryption
 - Web unit tests preload `src/test-timezone.mjs` (`Pacific/Kiritimati`). Don't rely on a shell `TZ=` prefix; it doesn't work on Windows.
 - API route tests that import workspace TypeScript must be bundled with esbuild first (see the `test` script).
 - Keep Expo Router `Stack.Screen` entries as direct children; a fragment crashes the web preview.
+- Browser suites whose harness imports `App.tsx` (recurrence, memory) need `attached_assets/buhay-os-lockup-cropped.png`, which wasn't importable from Replit. Without it Vite fails to load the page.
 - Some binary assets (logo, film media, mobile icons) weren't importable from Replit. See `REPLIT-IMPORT.md`.
 
 ## Pointers

@@ -26,7 +26,8 @@ test('phone sheets keep every destination reachable and gate Release 2 links', (
   }
   // The You sheet reuses the account entries (Settings, Versions).
   assert.match(sheets, /you: \{[^}]*items: account/);
-  assert.match(nav, /const account = \[entry\('\/settings', 'Settings', SettingsIcon\), entry\('\/history', 'Versions', History\)\]/);
+  // Memory joins the account entries only when its route is enabled (VITE_BAKAS_MEMORIES).
+  assert.match(nav, /const account = \[entry\('\/settings', 'Settings', SettingsIcon\), \.\.\.\[entry\('\/memory', 'Memory', Brain\)\]\.filter\(on\), entry\('\/history', 'Versions', History\)\]/);
   assert.match(sheets, /entry\('\/search', 'Search', Search\)\]\.filter\(on\)/);
   assert.match(sheets, /\[entry\('\/reviews', 'Reviews', BookOpen\), \.\.\.timeline\]\.filter\(on\)/);
   assert.match(sheets, /Reviews and Timeline are not switched on yet\. Your planner data is unchanged\./);

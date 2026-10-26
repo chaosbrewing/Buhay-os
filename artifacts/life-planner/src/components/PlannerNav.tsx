@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Link } from 'wouter';
-import { BookOpen, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
+import { BookOpen, Brain, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
 
 type Icon = ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
 export type NavEntry = { href: string; label: string; icon: Icon };
@@ -21,7 +21,7 @@ export function buildNavGroups(enabled: Set<string>) {
     { id: 'rhythms', label: 'Habits & routines', items: [entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2)] },
   ];
   if (life.length) groups.push({ id: 'life', label: 'Life planning', items: life });
-  const account = [entry('/settings', 'Settings', SettingsIcon), entry('/history', 'Versions', History)];
+  const account = [entry('/settings', 'Settings', SettingsIcon), ...[entry('/memory', 'Memory', Brain)].filter(on), entry('/history', 'Versions', History)];
   // Phone tabs (founder decision D3, 2026-10-25): Today / Planner / Capture / Review / You.
   const sheets: Record<PhoneSheetId, PhoneSheet> = {
     planner: { label: 'Planner', eyebrow: 'Plan ahead', icon: CalendarRange, items: [
