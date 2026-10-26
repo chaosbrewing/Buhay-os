@@ -205,7 +205,14 @@ test("Google tokens are encrypted, authenticated, and readable only with the sam
   assert.throws(() => decryptStoredTokens(encrypted, "another-secret"));
 
   const parsed = JSON.parse(encrypted);
-  parsed.ciphertext = `${parsed.ciphertext.slice(0, -1)}${parsed.ciphertext.endsWith("a") ? "b" : "a"}`;
+  // Flip one bit of a real byte. Swapping the last base64url character is not enough: when the
+  // encoded length leaves a short tail, that character's low bits are ignored, so about 6% of the
+  // time the bytes (and the decrypted result) came out unchanged and this assertion failed at random.
+  // AES-GCM is a stream cipher, so ciphertext byte i changes plaintext byte i. Flipping a character
+  // inside the access token keeps the plaintext valid JSON, so only authentication can reject it.
+  const tampered = Buffer.from(parsed.ciphertext, "base64url");
+  tampered[JSON.stringify(tokens).indexOf(tokens.accessToken)] ^= 0x01;
+  parsed.ciphertext = tampered.toString("base64url");
   assert.throws(() => decryptStoredTokens(JSON.stringify(parsed), secret));
 });
 
