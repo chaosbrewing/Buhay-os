@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Brain, Lock, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Brain, Link2, Lock, Pencil, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import type { PlannerMemory } from '@workspace/planner-contract/bakas';
 import { describeSource, earlierWordings, formatMemoryDate, kindLabel, needsSourceDecision, verificationLabel } from '@/memories';
 import { useModalBehavior } from '@/components/useModalBehavior';
@@ -43,19 +43,44 @@ function ConfirmDelete({ memory, onCancel, onConfirm }: { memory: PlannerMemory;
 export default function MemoryPage({ memories, problem, titleOf, onAdd, onEdit, onSetPrivate, onDelete, onKeep }: Props) {
   const [confirming, setConfirming] = useState<PlannerMemory | null>(null);
   const [error, setError] = useState('');
+  const [filter, setFilter] = useState<'all' | 'private' | 'linked'>('all');
 
   const act = (result: string | null) => setError(result ?? '');
+
+  const isPrivateMemory = (memory: PlannerMemory) => memory.sensitivity === 'private';
+  const isLinked = (memory: PlannerMemory) => memory.source.type !== 'manual';
+  const counts = {
+    all: memories.length,
+    private: memories.filter(isPrivateMemory).length,
+    linked: memories.filter(isLinked).length,
+    corrected: memories.filter((memory) => earlierWordings(memory).length > 0).length,
+  };
+  const shown = filter === 'private' ? memories.filter(isPrivateMemory) : filter === 'linked' ? memories.filter(isLinked) : memories;
 
   return (
     <div className="mem-page" data-testid="page-memory">
       <style>{`
-        .mem-page{max-width:880px;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(17px,5vw,40px) 80px}
+        .mem-page{max-width:1040px;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(17px,5vw,40px) 80px}
         .mem-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
-        .mem-head h1{margin:6px 0 8px;font:500 clamp(30px,5vw,42px)/1.08 var(--app-font-serif)}
+        .mem-head h1{margin:6px 0 8px;font:700 clamp(28px,4vw,36px)/1.12 var(--app-font-sans);letter-spacing:-.6px}
+        .mem-layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:18px;align-items:start}
+        .mem-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid hsl(var(--border));overflow-x:auto}
+        .mem-tabs button{border:0;border-bottom:3px solid transparent;background:transparent;padding:9px 13px;font-size:14px;font-weight:600;color:hsl(var(--muted-foreground));white-space:nowrap}
+        .mem-tabs button[aria-pressed="true"]{color:hsl(var(--primary));border-bottom-color:hsl(var(--primary))}
+        .mem-tabs button:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:-2px;border-radius:8px}
+        .mem-stats{padding:18px;border-radius:24px;border:1px solid var(--glass-edge);background:var(--glass);box-shadow:var(--glass-shadow)}
+        .mem-stats h2{margin:0 0 12px;font:650 17px/1.2 var(--app-font-sans)}
+        .mem-stats dl{margin:0;display:grid;gap:10px}
+        .mem-stat{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--glass-strong);border:1px solid hsl(var(--border))}
+        .mem-stat svg{grid-row:span 2;color:hsl(var(--primary))}
+        .mem-stat dd{margin:0;font:700 20px/1 var(--app-font-sans)}
+        .mem-stat dt{font-size:12px;color:hsl(var(--muted-foreground))}
+        .mem-stats p{margin:12px 0 0;font-size:12px;line-height:1.55;color:hsl(var(--muted-foreground))}
+        @media(max-width:860px){.mem-layout{grid-template-columns:1fr}}
         .mem-head p{margin:0;max-width:56ch;font-size:14px;line-height:1.6;color:hsl(var(--muted-foreground))}
         .mem-error{margin:0 0 14px;padding:11px 13px;border:1px solid hsl(var(--destructive)/.4);border-radius:12px;background:hsl(var(--destructive)/.07);font-size:13px;line-height:1.5}
         .mem-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-        .mem-card{padding:17px 18px;border:1px solid hsl(var(--border));border-radius:16px;background:hsl(var(--card))}
+        .mem-card{padding:17px 18px;border:1px solid var(--glass-edge);border-radius:20px;background:var(--glass);box-shadow:var(--glass-shadow)}
         .mem-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
         .mem-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;background:hsl(var(--secondary));font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
         .mem-badge.is-private{background:hsl(var(--primary)/.14)}
@@ -83,8 +108,8 @@ export default function MemoryPage({ memories, problem, titleOf, onAdd, onEdit, 
 
       <header className="mem-head">
         <div>
-          <div className="eyebrow">What Buhay.OS remembers</div>
-          <h1>Memory.</h1>
+          <div className="eyebrow">Your personal memory vault</div>
+          <h1>BAKAS</h1>
           <p>Only what you choose to save, kept in your encrypted planner. Correct it or delete it any time. Private memories are never used by anything else.</p>
         </div>
         <button type="button" className="btn btn-primary" onClick={onAdd} disabled={problem !== null} data-testid="button-add-memory"><Plus size={16} /> Add a memory</button>
@@ -103,8 +128,16 @@ export default function MemoryPage({ memories, problem, titleOf, onAdd, onEdit, 
       )}
 
       {memories.length > 0 && (
+       <div className="mem-layout">
+        <div>
+        <div className="mem-tabs" role="group" aria-label="Show memories">
+          {([['all', 'All memories', counts.all], ['private', 'Private', counts.private], ['linked', 'Linked', counts.linked]] as const).map(([id, label, count]) => (
+            <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)} data-testid={`tab-memory-${id}`}>{label} ({count})</button>
+          ))}
+        </div>
+        {shown.length === 0 && <p className="mem-meta" data-testid="empty-memory-filter">{filter === 'private' ? 'No private memories yet.' : 'No memories linked to a note or Inbox thought yet.'}</p>}
         <ul className="mem-list" aria-label="Saved memories" data-testid="list-memories">
-          {memories.map((memory) => {
+          {shown.map((memory) => {
             const isPrivate = memory.sensitivity === 'private';
             const undecided = needsSourceDecision(memory);
             const earlier = earlierWordings(memory);
@@ -150,6 +183,18 @@ export default function MemoryPage({ memories, problem, titleOf, onAdd, onEdit, 
             );
           })}
         </ul>
+        </div>
+        <aside className="mem-stats" aria-labelledby="mem-stats-title" data-testid="memory-stats">
+          <h2 id="mem-stats-title">At a glance</h2>
+          <dl>
+            <div className="mem-stat"><Brain size={18} aria-hidden="true" /><dd>{counts.all}</dd><dt>Total memories</dt></div>
+            <div className="mem-stat"><Lock size={18} aria-hidden="true" /><dd>{counts.private}</dd><dt>Private</dt></div>
+            <div className="mem-stat"><Link2 size={18} aria-hidden="true" /><dd>{counts.linked}</dd><dt>Linked to a note or thought</dt></div>
+            <div className="mem-stat"><Pencil size={18} aria-hidden="true" /><dd>{counts.corrected}</dd><dt>Corrected, earlier wording kept</dt></div>
+          </dl>
+          <p><ShieldCheck size={13} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 5 }} />Private memories are shown here and nowhere else.</p>
+        </aside>
+       </div>
       )}
 
       {confirming && (

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { CalendarDays, Clock3, ExternalLink, MapPin, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { CalendarEventCard } from './CalendarEventCard';
+import CalendarMonthView from './CalendarMonthView';
+import { localDateOf, monthRange, monthStart, type CalendarView } from './calendar-grid';
 import {
   getGetGoogleCalendarConnectionQueryKey,
   getListGoogleCalendarsQueryKey,
@@ -263,6 +265,21 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
       refetchOnWindowFocus: true,
     },
   });
+  // Month, week and day views read the month around the focused date; the List view keeps the next-30-days window above.
+  const [view, setView] = useState<CalendarView | 'agenda'>('month');
+  const todayDate = localDateOf(new Date().toISOString());
+  const [selectedDay, setSelectedDay] = useState(todayDate);
+  const [focusDate, setFocusDate] = useState(monthStart(todayDate));
+  const monthWindow = useMemo(() => monthRange(focusDate), [focusDate]);
+  const monthQuery = useListGoogleCalendarEvents(monthWindow, {
+    query: {
+      enabled: connection.data?.connected === true && view !== 'agenda',
+      queryKey: getListGoogleCalendarEventsQueryKey(monthWindow),
+      refetchInterval: 60_000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: true,
+    },
+  });
   const create = useCreateGoogleCalendarEvent();
   const updateHeaders = useRef<Record<string, string>>({});
   const deleteHeaders = useRef<Record<string, string>>({});
@@ -318,7 +335,7 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
   const resetForm = () => { setFormOpen(false); setEditing(null); setDraft(emptyDraft()); setFormError(''); setFormNeedsReconnect(false); setConflict(null); };
   const discardDraft = () => { clearCalendarDraft(accountId); resetForm(); };
   const startEdit = (event: CalendarEvent) => { setFormOpen(true); setEditing(event); setDraft(eventDraft(event)); setFormError(''); setFormNeedsReconnect(false); setConflict(null); };
-  const startCreate = () => { setEditing(null); setDraft({...emptyDraft(defaultCalendarId),requestKey:`buhay-event-${crypto.randomUUID()}`}); setFormError(''); setFormNeedsReconnect(false); setConflict(null); setFormOpen(true); };
+  const startCreate = (date?: string) => { setEditing(null); setDraft({...emptyDraft(defaultCalendarId),...(date?{start:`${date}T09:00`,end:`${date}T10:00`}:{}),requestKey:`buhay-event-${crypto.randomUUID()}`}); setFormError(''); setFormNeedsReconnect(false); setConflict(null); setFormOpen(true); };
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
@@ -333,6 +350,7 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
       setNotice(editing ? 'Event updated.' : 'Event created.');
       setNoticeNeedsReconnect(false);
       void client.invalidateQueries({ queryKey: getListGoogleCalendarEventsQueryKey(range) });
+      void client.invalidateQueries({ queryKey: getListGoogleCalendarEventsQueryKey(monthWindow) });
       void client.invalidateQueries({ queryKey: getGetGoogleCalendarConnectionQueryKey() });
     };
     if (editing) {
@@ -377,6 +395,7 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
         setNotice('Event deleted.');
         setNoticeNeedsReconnect(false);
         void client.invalidateQueries({ queryKey: getListGoogleCalendarEventsQueryKey(range) });
+        void client.invalidateQueries({ queryKey: getListGoogleCalendarEventsQueryKey(monthWindow) });
         void client.invalidateQueries({ queryKey: getGetGoogleCalendarConnectionQueryKey() });
       },
       onError: error => {
@@ -445,8 +464,9 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
           ? <><strong>Google Calendar access needs renewal.</strong><span>Reconnect to restore calendar access. Your saved calendar choices and other Buhay.OS data are safe.</span><GoogleCalendarReconnectButton label={eventErrorCode === 'GOOGLE_REAUTH_REQUIRED' ? 'Reconnect Google Calendar' : 'Grant Google Calendar access'}/></>
           : <><strong>Events did not come through.</strong><span>Google Calendar may be taking a moment to respond.</span><button className="btn btn-quiet" onClick={() => void eventQuery.refetch()} data-testid="button-retry-calendar-events">Try again</button></>}
       </div></section> :
+      view !== 'agenda' ? <CalendarMonthView view={view} onView={setView} focus={focusDate} selected={selectedDay} today={todayDate} events={monthQuery.data ?? []} loading={monthQuery.isLoading} failed={monthQuery.isError} onFocus={setFocusDate} onSelect={setSelectedDay} onNew={startCreate} onEdit={startEdit} calendarNames={calendarNames}/> :
       <>
-       <div className="section-title"><div><h2>Coming up</h2><small>{events.length ? `${events.length} event${events.length === 1 ? '' : 's'} in the next 30 days` : 'A clear stretch of days'}</small><small>Google changes are checked about once a minute while this page is open.</small></div><div style={{display:'flex',gap:8}}><button className="btn btn-quiet" onClick={() => void eventQuery.refetch()} disabled={eventQuery.isFetching} data-testid="button-refresh-calendar"><RefreshCw size={15}/>{eventQuery.isFetching ? 'Refreshing…' : 'Refresh'}</button><button className="btn btn-primary" onClick={startCreate} data-testid="button-new-calendar-event"><Plus size={15}/> New event</button></div></div>
+       <div className="section-title"><div><h2>Coming up</h2><small>{events.length ? `${events.length} event${events.length === 1 ? '' : 's'} in the next 30 days` : 'A clear stretch of days'}</small><small>Google changes are checked about once a minute while this page is open.</small></div><div style={{display:'flex',gap:8}}><button className="btn btn-quiet" onClick={() => setView('month')} data-testid="button-calendar-view-month">Month view</button><button className="btn btn-quiet" onClick={() => void eventQuery.refetch()} disabled={eventQuery.isFetching} data-testid="button-refresh-calendar"><RefreshCw size={15}/>{eventQuery.isFetching ? 'Refreshing…' : 'Refresh'}</button><button className="btn btn-primary" onClick={() => startCreate()} data-testid="button-new-calendar-event"><Plus size={15}/> New event</button></div></div>
        {events.length ? <div className="calendar-list" data-testid="list-calendar-events">{events.map(event =>
          <CalendarEventCard
            key={`${event.calendarId}:${event.id}`}
@@ -456,7 +476,7 @@ export default function CalendarPage({preferredCalendarId,onPreferredCalendarCha
            onEdit={startEdit}
            onDelete={deleteEvent}
          />
-       )}</div> : <section className="surface"><div className="empty-state" data-testid="state-calendar-empty"><div className="empty-art"><CalendarDays size={20}/></div><strong>No events in this stretch.</strong><span>Make space for something worth looking forward to.</span><button className="btn btn-primary" onClick={startCreate} data-testid="button-create-first-calendar-event"><Plus size={14}/> Add an event</button></div></section>}
+       )}</div> : <section className="surface"><div className="empty-state" data-testid="state-calendar-empty"><div className="empty-art"><CalendarDays size={20}/></div><strong>No events in this stretch.</strong><span>Make space for something worth looking forward to.</span><button className="btn btn-primary" onClick={() => startCreate()} data-testid="button-create-first-calendar-event"><Plus size={14}/> Add an event</button></div></section>}
       </>}
 
     {formOpen && <div className="dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setFormOpen(false); }}>

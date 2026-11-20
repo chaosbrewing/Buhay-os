@@ -1,5 +1,6 @@
 import type { ReleaseTwoPlannerData } from './lib/planner-model';
 import { keepDeletedJournalEntries } from '@workspace/planner-contract/journal';
+import { keepDeletedFinanceEntries } from '@workspace/planner-contract/tuklas';
 
 type MemoryLike = { id: string; deletedAt?: string };
 
@@ -22,16 +23,17 @@ export function keepDeletedMemories(
 }
 
 /**
- * Everything a restore must not resurrect: deleted memories and deleted journal entries.
- * Older planners with neither come back untouched.
+ * Everything a restore must not resurrect: deleted memories, journal entries and finance entries.
+ * Older planners with none of these come back untouched.
  */
 export function keepDeletedRecords(
   restored: ReleaseTwoPlannerData,
   current: ReleaseTwoPlannerData,
 ): ReleaseTwoPlannerData {
   const withMemories = keepDeletedMemories(restored, current);
-  return keepDeletedJournalEntries(
+  const withJournal = keepDeletedJournalEntries(
     withMemories as unknown as Record<string, unknown>,
     current as unknown as Record<string, unknown>,
-  ) as unknown as ReleaseTwoPlannerData;
+  );
+  return keepDeletedFinanceEntries(withJournal, current as unknown as Record<string, unknown>) as unknown as ReleaseTwoPlannerData;
 }

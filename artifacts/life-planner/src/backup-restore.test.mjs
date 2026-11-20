@@ -45,3 +45,15 @@ test('a planner with no journal or memories is returned untouched', () => {
   const restored = { ...base };
   assert.equal(keepDeletedRecords(restored, base), restored);
 });
+
+test('one restore keeps deleted memories, journal entries and finance entries all deleted', () => {
+  const entry = (id) => ({ id, kind: 'spending', name: `spent ${id}`, amountMinor: 100, currency: 'AUD', date: '2026-11-01', category: 'Other', createdAt: T, updatedAt: T });
+  const restored = { ...base, memories: [live('m1')], journalEntries: [page('j1')], financeEntries: [entry('f1'), entry('f2')] };
+  const current = { ...base, memories: [{ id: 'm1', deletedAt: T }], journalEntries: [{ id: 'j1', deletedAt: T }], financeEntries: [{ id: 'f1', deletedAt: T }] };
+  const out = keepDeletedRecords(restored, current);
+  assert.deepEqual(out.financeEntries.find((e) => e.id === 'f1'), { id: 'f1', deletedAt: T });
+  assert.equal(out.financeEntries.find((e) => e.id === 'f2').name, 'spent f2');
+  assert.ok(!JSON.stringify(out).includes('spent f1'));
+  assert.deepEqual(out.memories, [{ id: 'm1', deletedAt: T }]);
+  assert.deepEqual(out.journalEntries, [{ id: 'j1', deletedAt: T }]);
+});

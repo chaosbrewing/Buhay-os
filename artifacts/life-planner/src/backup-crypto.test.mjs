@@ -98,3 +98,15 @@ test('a journal travels inside an encrypted backup and comes back identical, wit
   assert.equal(file.includes('2026-02-11'), false);
   assert.equal(await decryptBackup(file, 'correct horse battery staple'), plaintext);
 });
+
+test('finance entries travel inside an encrypted backup and come back identical, with no amount or name in the file', async () => {
+  const { addCommitment } = await import('@workspace/planner-contract/tuklas');
+  const ids = (() => { let n = 0; return () => `f-${++n}`; })();
+  const now = '2026-10-26T10:00:00.000Z';
+  const { data } = addCommitment({ tasks: [], notes: [], settings: {} }, { name: 'FINANCE-SECRET-NAME', amountMinor: 123456, currency: 'AUD', dueDate: '2026-11-25', repeat: 'monthly', category: 'Housing' }, now, ids);
+  const plaintext = JSON.stringify(data);
+  const file = await encryptBackup(plaintext, 'correct horse battery staple');
+  assert.equal(file.includes('FINANCE-SECRET-NAME'), false);
+  assert.equal(file.includes('123456'), false);
+  assert.equal(await decryptBackup(file, 'correct horse battery staple'), plaintext);
+});

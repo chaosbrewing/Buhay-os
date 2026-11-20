@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Link } from 'wouter';
-import { BookMarked, BookOpen, Brain, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
+import { BookMarked, BookOpen, ListTodo, Wallet, Brain, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
 
 type Icon = ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
 export type NavEntry = { href: string; label: string; icon: Icon };
@@ -16,8 +16,8 @@ export function buildNavGroups(enabled: Set<string>) {
   const life = [entry('/goals', 'Goals', Flag), entry('/life-areas', 'Life Areas', CircleHelp), entry('/reviews', 'Reviews', BookOpen)].filter(on);
   const timeline = [entry('/timeline', 'Timeline', GanttChart)].filter(on);
   const groups: NavGroup[] = [
-    { id: 'daily', label: 'Daily planning', items: [entry('/', 'Today', Flower2), entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), ...timeline, entry('/inbox', 'Inbox', Inbox)] },
-    { id: 'organize', label: 'Organize', items: [entry('/projects', 'Projects', FolderKanban), entry('/notes', 'Notes', NotebookPen), ...[entry('/journal', 'Journal', BookMarked)].filter(on), entry('/templates', 'Templates', LayoutTemplate)] },
+    { id: 'daily', label: 'Daily planning', items: [entry('/', 'Today', Flower2), entry('/plan', 'Planner', ListTodo), entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), ...timeline, entry('/inbox', 'Inbox', Inbox)] },
+    { id: 'organize', label: 'Organize', items: [entry('/projects', 'Projects', FolderKanban), entry('/notes', 'Notes', NotebookPen), ...[entry('/journal', 'Journal', BookMarked)].filter(on), ...[entry('/finances', 'Finances', Wallet)].filter(on), entry('/templates', 'Templates', LayoutTemplate)] },
     { id: 'rhythms', label: 'Habits & routines', items: [entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2)] },
   ];
   if (life.length) groups.push({ id: 'life', label: 'Life planning', items: life });
@@ -25,7 +25,7 @@ export function buildNavGroups(enabled: Set<string>) {
   // Phone tabs (founder decision D3, 2026-10-25): Today / Planner / Capture / Review / You.
   const sheets: Record<PhoneSheetId, PhoneSheet> = {
     planner: { label: 'Planner', eyebrow: 'Plan ahead', icon: CalendarRange, items: [
-      entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), entry('/projects', 'Projects', FolderKanban),
+      entry('/plan', 'Overview', ListTodo), entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), entry('/projects', 'Projects', FolderKanban),
       entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2), entry('/templates', 'Templates', LayoutTemplate),
       ...[entry('/goals', 'Goals', Flag), entry('/life-areas', 'Life Areas', CircleHelp), entry('/search', 'Search', Search)].filter(on),
     ] },

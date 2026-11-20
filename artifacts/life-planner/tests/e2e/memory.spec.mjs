@@ -300,3 +300,18 @@ test('unreadable memories show a plain message, are not changed, and never crash
   // The rest of the planner still works.
   await expect(page.getByTestId('button-edit-note-n1')).toBeVisible();
 });
+
+test('the vault shows tabs and counts, and filters by private and linked', async ({ page }) => {
+  await open(page);
+  const total = Number((await page.getByTestId('tab-memory-all').textContent()).match(/\((\d+)\)/)[1]);
+  expect(total).toBeGreaterThan(0);
+  await addMemory(page, 'A private thing', { isPrivate: true });
+  await expect(page.getByTestId('tab-memory-all')).toHaveText(`All memories (${total + 1})`);
+  await page.getByTestId('tab-memory-private').click();
+  await expect(page.getByTestId('tab-memory-private')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('list-memories').getByTestId(/^card-memory-/)).toHaveCount(await page.locator('[data-testid^="card-memory-"] .is-private').count());
+  await expect(memoryCard(page, 'A private thing')).toBeVisible();
+  await expect(page.getByTestId('memory-stats')).toContainText('Total memories');
+  await page.getByTestId('tab-memory-all').click();
+  await expect(page.getByTestId('list-memories').getByTestId(/^card-memory-/)).toHaveCount(total + 1);
+});

@@ -3,7 +3,7 @@ import { Link, Redirect, Route, Switch, useLocation, Router as WouterRouter } fr
 import { BookOpen, Brain, CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, FileText, Flower2, FolderKanban, Inbox, LayoutTemplate, ListTodo, Moon, Plus, Repeat2, Search, Settings as SettingsIcon, Sparkles, Sun, Trash2, X, Pencil, Download, Upload, RotateCcw, CloudOff, LockKeyhole, History, ShieldCheck, AlertTriangle, LogOut, ArrowRight, RefreshCw, Flag, CircleHelp } from 'lucide-react';
 import buhayOsLogo from '@assets/buhay-os-lockup-cropped.png';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
-import { ClerkProvider, SignIn, SignUp, useAuth, useClerk } from '@clerk/react';
+import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { getGetPlannerVersionQueryKey, getListPlannerVersionsQueryKey, useGetPlannerVersion, useListPlannerVersions } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -52,6 +52,9 @@ import PlanDraftSheet from '@/components/PlanDraftSheet';
 import { useMemories } from './useMemories';
 import MemoryPage from '@/pages/MemoryPage';
 import JournalPage, { JournalTodayCard } from '@/pages/JournalPage';
+import PlannerOverviewPage from '@/pages/PlannerOverviewPage';
+import TuklasPage from '@/pages/TuklasPage';
+import { useTuklas } from './useTuklas';
 import { useJournal } from './useJournal';
 import MemoryDialog from '@/components/MemoryDialog';
 import { clearCalendarDraft } from './calendarDate';
@@ -65,6 +68,7 @@ type NoteDraft = Omit<Note,'id'>;
 const STORAGE_KEY='daybook.local.v1';
 const today=localDateKey;
 const dateOffset=offsetLocalDate;
+const greetingFor=(hour:number)=>hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
 const uid=()=>`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
 const starter=():Data=>({
   settings:{theme:'light',accentHex:'#3b765e'},
@@ -95,7 +99,7 @@ const basePath=import.meta.env.BASE_URL.replace(/\/$/,'');
 const clerkPubKey=publishableKeyFromHost(window.location.hostname,import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 const clerkProxyUrl=import.meta.env.VITE_CLERK_PROXY_URL;
 const plannerPath=(path:string)=>`/planner${path==='/'?'':path}`;
-const navItems=[[plannerPath('/'),'Today',Flower2],[plannerPath('/week'),'Week',CalendarDays],[plannerPath('/projects'),'Projects',FolderKanban],[plannerPath('/inbox'),'Inbox',Inbox],[plannerPath('/habits'),'Habits',Sparkles],[plannerPath('/routines'),'Routines',Repeat2],[plannerPath('/calendar'),'Calendar',CalendarDays],[plannerPath('/notes'),'Notes',BookOpen],[plannerPath('/templates'),'Templates',LayoutTemplate],[plannerPath('/settings'),'Settings',SettingsIcon]] as const;
+const navItems=[[plannerPath('/'),'Today',Flower2],[plannerPath('/plan'),'Planner',ListTodo],[plannerPath('/week'),'Week',CalendarDays],[plannerPath('/projects'),'Projects',FolderKanban],[plannerPath('/inbox'),'Inbox',Inbox],[plannerPath('/habits'),'Habits',Sparkles],[plannerPath('/routines'),'Routines',Repeat2],[plannerPath('/calendar'),'Calendar',CalendarDays],[plannerPath('/notes'),'Notes',BookOpen],[plannerPath('/templates'),'Templates',LayoutTemplate],[plannerPath('/settings'),'Settings',SettingsIcon]] as const;
 const buildEnv = import.meta.env as Record<string, string | undefined>;
 const releaseTwoFlags = {
   goalsAndMilestones: buildEnv.VITE_RELEASE_TWO_GOALS === 'true',
@@ -114,6 +118,9 @@ const memoriesEnabled = buildEnv.VITE_BAKAS_MEMORIES === 'true';
 // Journal (365 Days of Me): the Journal page and a daily question on Today.
 // Fails closed: on only when the flag is exactly 'true'.
 const journalEnabled = buildEnv.VITE_JOURNAL === 'true';
+// TUKLAS (finances): money commitments and spending the person records by hand.
+// Fails closed: on only when the flag is exactly 'true'.
+const tuklasEnabled = buildEnv.VITE_TUKLAS === 'true';
 const releaseTwoNavItems = [
   [plannerPath('/goals'), 'Goals', Flag, 'goalsAndMilestones'],
   [plannerPath('/life-areas'), 'Life Areas', CircleHelp, 'lifeAreas'],
@@ -125,6 +132,7 @@ const visibleNavItems = [
   ...navItems,
   ...(memoriesEnabled ? [[plannerPath('/memory'), 'Memory', Brain] as const] : []),
   ...(journalEnabled ? [[plannerPath('/journal'), 'Journal', BookOpen] as const] : []),
+  ...(tuklasEnabled ? [[plannerPath('/finances'), 'Finances', ListTodo] as const] : []),
   ...releaseTwoNavItems.filter(([, , , flag]) => releaseTwoFlags[flag]).map(([href, label, Icon]) => [href, label, Icon] as const),
 ];
 const enabledNavHrefs = new Set<string>(visibleNavItems.map(([href]) => href));
@@ -343,6 +351,7 @@ function PlannerApp(){
   const plans=usePlanDrafts({enabled:planDraftsEnabled,data,setData,makeId:uid,today,goalsEnabled:releaseTwoFlags.goalsAndMilestones,notify:setToast});
   const memories=useMemories({enabled:memoriesEnabled,data,setData,makeId:uid,notify:setToast});
   const journal=useJournal({enabled:journalEnabled,data,setData,makeId:uid,notify:setToast});
+  const finance=useTuklas({enabled:tuklasEnabled,data,setData,makeId:uid,notify:setToast});
   const saveRoutine=(draft:Omit<PlannerRoutine,'id'>,id?:string)=>{
     const existing=id?(data.routines??[]).find(item=>item.id===id):undefined;
     const routine:PlannerRoutine=existing?{...existing,...draft,id:existing.id}:{...draft,id:uid()};
@@ -549,6 +558,11 @@ function PlannerApp(){
   const todayTasks=expandPlannerTaskOccurrences(data.tasks,today(),today());
   const todayWorkTasks=todayTasks.filter(task=>task.parentTaskId||!data.tasks.some(child=>child.parentTaskId===task.id));
   const completedToday=todayWorkTasks.filter(task=>isTaskComplete(task,data.tasks)).length;
+  const agendaTasks=[...todayWorkTasks].filter(task=>task.dueTime).sort((a,b)=>a.dueTime.localeCompare(b.dueTime));
+  const priorityTasks=todayWorkTasks.filter(task=>!isTaskComplete(task,data.tasks)).slice(0,5);
+  const habitsDoneToday=(data.habits??[]).filter(h=>getPlannerHabitHistory(h,today(),today())[0].status==='completed').length;
+  const {user:clerkUser}=useUser();
+  const firstName=clerkUser?.firstName?.trim()||'';
   const todayNotes=data.notes.filter(n=>n.date===today());
   const statusLabel=syncStatus==='syncing'?'Saving encrypted changes':syncStatus==='ready'?'Synced securely':syncStatus==='offline'?'Offline · saved here':syncStatus==='error'?'Sync needs attention':'Changes waiting to sync';
   const shell=(children:ReactNode)=>(
@@ -557,6 +571,7 @@ function PlannerApp(){
         <Link href={plannerPath('/')} className="brand" data-testid="link-daybook-home"><img src={buhayOsLogo} alt="Buhay.OS" className="brand-logo"/></Link>
         <PlannerSidebarNav location={location} enabled={enabledNavHrefs}/>
         <div className="sidebar-bottom">
+          {journal.today&&<Link href={plannerPath('/journal')} className="sidebar-journal" data-testid="link-sidebar-journal"><BookOpen size={20} aria-hidden="true"/><span><strong>Day {String(journal.today.dayNumber).padStart(3,'0')} of 365</strong><small>365 Days of Me</small><progress max={365} value={journal.today.dayNumber} aria-label={`Journal progress: day ${journal.today.dayNumber} of 365`}/></span></Link>}
           <div className={`sync-pill sync-${syncStatus}`}><span className="sync-dot"/><span>{statusLabel}</span></div>
           <div className="device-note"><strong>Private by design</strong>Server storage contains ciphertext only. Your offline cache stays on this device.</div>
           <button className="nav-link lock-link" onClick={lockPlanner}><LockKeyhole size={16}/><span>Lock planner</span></button>
@@ -584,6 +599,7 @@ function PlannerApp(){
             {releaseTwoFlags.unifiedSearch&&<Link href={plannerPath('/search')} className="icon-btn" aria-label="Open unified search" title="Open unified search" data-testid="link-unified-search"><Search size={16}/></Link>}
             <Link href={plannerPath('/settings')} className="icon-btn top-settings" aria-label="Settings" title="Settings" data-testid="link-header-settings"><SettingsIcon size={16}/></Link>
             <button className="icon-btn" aria-label="Toggle theme" title="Toggle theme" data-testid="button-toggle-theme" onClick={()=>changeSettings({theme:data.settings.theme==='light'?'dark':'light'})}>{data.settings.theme==='light'?<Moon size={16}/>:<Sun size={16}/>}</button>
+            <Link href={plannerPath('/settings')} className="avatar" aria-label="Your account and settings" title="Your account and settings" data-testid="link-avatar">{clerkUser?.imageUrl?<img src={clerkUser.imageUrl} alt=""/>:<span aria-hidden="true">{(firstName||'You').slice(0,1).toUpperCase()}</span>}</Link>
           </div>
         </header>
         <main className="content">{passphraseError&&<p className="inline-error" role="alert">{passphraseError}</p>}{children}{location===plannerPath('/settings')&&<section className="surface settings-card"><h2>Recover the planner before replacement</h2><p>This device keeps an encrypted snapshot before a backup import or history restore. Recovery creates a new synced version.</p><button className="btn btn-quiet" data-testid="button-recover-pre-import" onClick={()=>{if(window.confirm('Restore the encrypted pre-replacement snapshot? Your current planner will also be preserved for recovery.'))void vault.restorePreImport().then(()=>setToast('Previous planner recovered')).catch(error=>setToast(error.message));}}>Recover previous planner</button></section>}</main>
@@ -600,25 +616,31 @@ function PlannerApp(){
   const todayPage=(
     <>
       <div className="page-heading">
-        <div><div className="eyebrow greeting">A little space for what matters</div><h1>Today, gently.</h1><p>{dateLabel(today())} · Your day, at your pace.</p></div>
+        <div><div className="eyebrow greeting">Plan. Live. Remember.</div><h1 data-testid="heading-today">{greetingFor(new Date().getHours())}{firstName?`, ${firstName}`:''}.</h1><p>{dateLabel(today())} · Your day, at your pace.</p></div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button className="btn btn-quiet" onClick={()=>setDashboardControlsOpen(value=>!value)} aria-expanded={dashboardControlsOpen} aria-controls="today-dashboard-controls" data-testid="button-customize-today"><LayoutTemplate size={15}/> Customize Today</button><button className="btn btn-primary" onClick={()=>openTask()} data-testid="button-add-task"><Plus size={16}/> Add a task</button></div>
       </div>
       {dashboardControlsOpen&&<DashboardWidgetControls order={getTodayWidgetOrder(data.settings)} onChange={todayWidgetOrder=>changeSettings({todayWidgetOrder})} onReset={resetDashboardWidgets}/>}
-      {journal.today&&<div style={{marginTop:18}}><JournalTodayCard today={journal.today} href={plannerPath('/journal')}/></div>}
+      <div className="today-top" data-testid="today-top">
+        <section className="surface section-card" data-testid="widget-today-agenda" aria-labelledby="today-agenda-title">
+          <div className="section-title"><h2 id="today-agenda-title">Today's agenda</h2><small>{agendaTasks.length?`${agendaTasks.length} ${agendaTasks.length===1?'item':'items'}`:'Nothing timed'}</small></div>
+          {agendaTasks.length?<ul className="agenda-list">{agendaTasks.map(task=><li key={`${task.id}:${task.occurrenceDate??''}`} className={isTaskComplete(task,data.tasks)?'done':''}><time>{formatTime(task.dueTime)}</time><button type="button" className="agenda-title" onClick={()=>openTask(task.dueDate,task)} data-testid={`agenda-task-${task.id}`}>{task.title}</button>{task.tag&&<span className="tag">{task.tag}</span>}</li>)}</ul>:<p className="agenda-empty">Give a task a time and it will appear here.</p>}
+        </section>
+        {journal.today?<JournalTodayCard today={journal.today} href={plannerPath('/journal')}/>:<section className="surface section-card" data-testid="widget-today-focus"><div className="section-title"><h2>Priorities today</h2><small>{priorityTasks.length?`${priorityTasks.length} to go`:'All clear'}</small></div>{priorityTasks.length?<ul className="priority-list">{priorityTasks.map(task=><li key={`${task.id}:${task.occurrenceDate??''}`}><button type="button" className="check" aria-label={`Mark complete: ${task.title}`} onClick={()=>toggleTask(task.id,task.occurrenceDate,task.seriesTaskId,task.completed)}/><span>{task.title}</span></li>)}</ul>:<p className="agenda-empty">Nothing is waiting on you.</p>}</section>}
+      </div>
       <div className="today-dashboard" data-testid="grid-today-dashboard">{getTodayWidgetOrder(data.settings).map(widget=>{
         if(widget==='progress')return <section className="welcome-band" data-testid="widget-today-progress" key={widget}><div><h2>Make room for a good day.</h2><p>Small steps count. Start wherever you are.</p></div><div className="welcome-count"><strong>{completedToday}<span style={{fontSize:20,opacity:.55}}> / {todayWorkTasks.length}</span></strong><span>little things done</span></div></section>;
         if(widget==='tasks')return <section className="surface section-card" data-testid="widget-today-tasks" key={widget}><div className="section-title"><div><h2>Today's rhythm</h2><small>{todayTasks.length?`${todayTasks.length} things on your list`:'A fresh page'}</small></div><button className="icon-btn" aria-label="Add task" onClick={()=>openTask()} data-testid="button-add-task-list"><Plus size={16}/></button></div>{todayTasks.length?<TaskList tasks={todayTasks} allTasks={data.tasks} onToggle={task=>toggleTask(task.id,task.occurrenceDate,task.seriesTaskId,task.completed)} onEdit={task=>openTask(task.dueDate,task)} onDelete={task=>deleteTask(task.id,task.occurrenceDate,task.seriesTaskId)}/>:<Empty title="Nothing tugging at you." text="Add a task when something comes to mind." icon={<ListTodo size={20}/>} action={<button className="btn btn-quiet" onClick={()=>openTask()}><Plus size={14}/> Add a task</button>}/>}</section>;
         if(widget==='notes')return <section className="surface section-card" data-testid="widget-today-notes" key={widget}><div className="section-title"><div><h2>Notes to self</h2><small>{todayNotes.length?`${todayNotes.length} note${todayNotes.length===1?'':'s'} for today`:'Keep a thought close'}</small></div><button className="icon-btn" aria-label="Add note" onClick={()=>openNote()} data-testid="button-add-note"><Plus size={16}/></button></div>{todayNotes.length?todayNotes.map(note=><NoteCard key={note.id} note={note} onEdit={()=>openNote(note)} onDelete={()=>deleteNote(note.id)} onRemember={memories.enabled?()=>memories.rememberNote(note):undefined}/>):<Empty title="A thought can start here." text="Save a note, a list, or a small reminder." icon={<FileText size={20}/>} action={<button className="btn btn-quiet" onClick={()=>openNote()}><Plus size={14}/> Write a note</button>}/>}</section>;
-        if(widget==='habits')return <section className="surface section-card" data-testid="widget-today-habits" key={widget}><div className="section-title"><div><h2>Small rhythms</h2><small>Your habits for today</small></div></div>{(data.habits??[]).length?(data.habits??[]).map(habit=>{
+        if(widget==='habits')return <section className="surface section-card" data-testid="widget-today-habits" key={widget}><div className="section-title"><div><h2>Small rhythms</h2><small>{(data.habits??[]).length?`${habitsDoneToday}/${(data.habits??[]).length} today`:'Your habits for today'}</small></div></div>{(data.habits??[]).length?<div className="habit-row">{(data.habits??[]).map(habit=>{
           // Same day status the Habits page uses: measurable progress, dated
           // completions, skips and pauses — not just legacy completedDates.
           const day=getPlannerHabitHistory(habit,today(),today())[0];
           const done=day.status==='completed',paused=day.status==='paused',skipped=day.status==='skipped';
           const note=paused?'Paused':skipped?'Skipped':habit.measurement?`${day.value??0}/${habit.measurement.goal} ${habit.measurement.unit}`:null;
           return habit.measurement
-            ?<button key={habit.id} className="dashboard-line" disabled={paused} aria-label={`Record ${habit.measurement.goal} ${habit.measurement.unit} for ${habit.title} today`} data-testid={`button-today-habit-${habit.id}`} onClick={()=>setHabitProgress(habit.id,today(),habit.measurement!.goal)}><span>{done?'✓':'○'}</span>{habit.title}{note&&<small> · {note}</small>}</button>
-            :<button key={habit.id} className="dashboard-line" disabled={paused} aria-pressed={done} data-testid={`button-today-habit-${habit.id}`} onClick={()=>toggleHabit(habit.id)}><span>{done?'✓':'○'}</span>{habit.title}{note&&<small> · {note}</small>}</button>;
-        }):<Empty title="No habits yet." text="Add a habit to see it here." icon={<Sparkles size={18}/>}/>}</section>;
+            ?<button key={habit.id} className="dashboard-line habit-chip" disabled={paused} aria-label={`Record ${habit.measurement.goal} ${habit.measurement.unit} for ${habit.title} today`} data-testid={`button-today-habit-${habit.id}`} onClick={()=>setHabitProgress(habit.id,today(),habit.measurement!.goal)}><span>{done?'✓':'○'}</span>{habit.title}{note&&<small> · {note}</small>}</button>
+            :<button key={habit.id} className="dashboard-line habit-chip" disabled={paused} aria-pressed={done} data-testid={`button-today-habit-${habit.id}`} onClick={()=>toggleHabit(habit.id)}><span>{done?'✓':'○'}</span>{habit.title}{note&&<small> · {note}</small>}</button>;
+        })}</div>:<Empty title="No habits yet." text="Add a habit to see it here." icon={<Sparkles size={18}/>}/>}</section>;
         return <section className="surface section-card" data-testid="widget-today-routines" key={widget}><div className="section-title"><div><h2>Routines</h2><small>Start a saved rhythm</small></div></div>{(data.routines??[]).length?(data.routines??[]).map(routine=><div className="dashboard-line" key={routine.id}><span>{routine.title}</span><button className="btn btn-quiet" onClick={()=>startRoutine(routine.id)}>Start</button></div>):<Empty title="No routines yet." text="Create a routine to keep a familiar rhythm." icon={<Repeat2 size={18}/>}/>}</section>;
       })}</div>
       <section className="surface week-notes">
@@ -665,7 +687,7 @@ function PlannerApp(){
   if(releaseTwoSection)return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<ReleaseTwoPage section={releaseTwoSection} data={data} isOnline={online} makeId={uid} onChange={next=>setData(next)} onOpenRecord={openPlannerRecord} featureFlags={releaseTwoFlags}/>)}</ErrorBoundary><Toaster/></TooltipProvider>;
   const releaseSection=location===plannerPath('/inbox')?'inbox':location===plannerPath('/habits')?'habits':location===plannerPath('/routines')?'routines':null;
   if(releaseSection)return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<><ReleaseOnePage section={releaseSection} inbox={data.inbox??[]} habits={data.habits??[]} routines={data.routines??[]} tasks={data.tasks} onSaveInbox={saveInbox} onDeleteInbox={deleteInbox} onConvertInbox={convertInbox} onSaveHabit={saveHabit} onDeleteHabit={deleteHabit} onToggleHabit={toggleHabit} onSetHabitProgress={setHabitProgress} onSetHabitSkipped={setHabitSkipped} onPauseHabit={pauseHabit} onResumeHabit={resumeHabit} onSaveRoutine={saveRoutine} onStartRoutine={startRoutine} onCompleteRoutineStep={correctRoutineStep} onDeleteRoutineRun={removeRoutineRun} onDeleteRoutine={deleteRoutine} plans={planDraftsEnabled?{drafts:plans.drafts,onTurnIntoPlan:plans.turnIntoPlan,onOpenDraft:plans.openDraft}:undefined} memory={memoriesEnabled?{onRemember:memories.rememberInbox}:undefined}/>{releaseSection==='inbox'&&plans.activeDraft&&<PlanDraftSheet key={plans.activeDraft.id} draft={plans.activeDraft} today={today()} onApprove={(itemId,fields)=>plans.approve(plans.activeDraft!.id,itemId,fields)} onDismissItem={itemId=>plans.dismissItem(plans.activeDraft!.id,itemId)} onAddStep={fields=>plans.addStep(plans.activeDraft!.id,fields)} onDismissPlan={()=>plans.dismissPlan(plans.activeDraft!.id)} onClose={plans.closeSheet}/>}</>)}</ErrorBoundary><Toaster/></TooltipProvider>;
-  return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<Switch><Route path={plannerPath('/')}>{todayPage}</Route><Route path={plannerPath('/week')}>{weekPage}</Route><Route path={plannerPath('/projects')}><ProjectsPage projects={data.projects??[]} tasks={data.tasks} onSaveProject={saveProject} onDeleteProject={deleteProject} onAddTask={(projectId,parentTaskId)=>openTask(parentTaskId?data.tasks.find(task=>task.id===parentTaskId)?.dueDate??today():today(),undefined,projectId,parentTaskId)} onEditTask={task=>openTask(task.dueDate,task)} onToggleTask={toggleTask} onDeleteTask={deleteTask}/></Route><Route path={plannerPath('/calendar')}><CalendarPage preferredCalendarId={data.settings.preferredCalendarId} onPreferredCalendarChange={preferredCalendarId=>changeSettings({preferredCalendarId})}/></Route><Route path={plannerPath('/notes')}>{notesPage}</Route><Route path={plannerPath('/templates')}>{templatesPage}</Route><Route path={plannerPath('/settings')}><>{settingsPage}<div className="settings-grid" style={{maxWidth:1160,margin:'-40px auto 0',padding:'0 clamp(20px,5vw,64px) 60px'}}><GoogleCalendarSettingsCard/></div></></Route><Route path="/planner/history">{historyPage}</Route>{memoriesEnabled&&<Route path={plannerPath('/memory')}><MemoryPage memories={memories.list} problem={memories.problem} titleOf={memories.titleOf} onAdd={memories.startNew} onEdit={memories.startEdit} onSetPrivate={memories.setPrivate} onDelete={memories.remove} onKeep={memories.keep}/></Route>}{journalEnabled&&<Route path={plannerPath('/journal')}><JournalPage journal={journal}/></Route>}<Route component={NotFound}/></Switch>)}</ErrorBoundary><Toaster/></TooltipProvider>;
+  return <TooltipProvider><ErrorBoundary resetKey={location}>{shell(<Switch><Route path={plannerPath('/')}>{todayPage}</Route><Route path={plannerPath('/week')}>{weekPage}</Route><Route path={plannerPath('/plan')}><PlannerOverviewPage data={data} today={today()} onToggleTask={task=>toggleTask(task.id,task.occurrenceDate,task.seriesTaskId,task.completed)} onAddTask={()=>openTask()} onEditTask={task=>openTask(task.dueDate,task)} onStartRoutine={startRoutine}/></Route><Route path={plannerPath('/projects')}><ProjectsPage projects={data.projects??[]} tasks={data.tasks} onSaveProject={saveProject} onDeleteProject={deleteProject} onAddTask={(projectId,parentTaskId)=>openTask(parentTaskId?data.tasks.find(task=>task.id===parentTaskId)?.dueDate??today():today(),undefined,projectId,parentTaskId)} onEditTask={task=>openTask(task.dueDate,task)} onToggleTask={toggleTask} onDeleteTask={deleteTask}/></Route><Route path={plannerPath('/calendar')}><CalendarPage preferredCalendarId={data.settings.preferredCalendarId} onPreferredCalendarChange={preferredCalendarId=>changeSettings({preferredCalendarId})}/></Route><Route path={plannerPath('/notes')}>{notesPage}</Route><Route path={plannerPath('/templates')}>{templatesPage}</Route><Route path={plannerPath('/settings')}><>{settingsPage}<div className="settings-grid" style={{maxWidth:1160,margin:'-40px auto 0',padding:'0 clamp(20px,5vw,64px) 60px'}}><GoogleCalendarSettingsCard/></div></></Route><Route path="/planner/history">{historyPage}</Route>{memoriesEnabled&&<Route path={plannerPath('/memory')}><MemoryPage memories={memories.list} problem={memories.problem} titleOf={memories.titleOf} onAdd={memories.startNew} onEdit={memories.startEdit} onSetPrivate={memories.setPrivate} onDelete={memories.remove} onKeep={memories.keep}/></Route>}{journalEnabled&&<Route path={plannerPath('/journal')}><JournalPage journal={journal}/></Route>}{tuklasEnabled&&<Route path={plannerPath('/finances')}><TuklasPage finance={finance}/></Route>}<Route component={NotFound}/></Switch>)}</ErrorBoundary><Toaster/></TooltipProvider>;
 }
 
 const shiftDate=shiftLocalDate;

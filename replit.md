@@ -42,6 +42,7 @@ A private, end-to-end encrypted life planner: daily and weekly plans, projects, 
 - BAKAS memories (`lib/planner-contract/src/bakas.ts`) are an optional encrypted `memories` list. Nothing in the UI uses them yet. Guesses stay labelled as guesses, corrections keep the earlier wording, and deleting erases the content. Another capability reads memories only with an active UGNAY `memory.read` grant, and never private ones.
 - The Memory page and "Remember this" on notes and Inbox thoughts are behind `VITE_BAKAS_MEMORIES` (`false` in `.replit`, on only when exactly `true`). They show memories directly to the person who owns them (never through the grant-checked retrieval other capabilities use), save only memories the user confirmed, and make no network calls.
 - The Journal page (365 Days of Me) and the daily question on Today are behind `VITE_JOURNAL` (`false` in `.replit`, on only when exactly `true`). Plain text only, no network calls; an edit keeps the earlier wording, and a deletion erases the text.
+- TUKLAS (finances) is behind `VITE_TUKLAS` (`false` in `.replit`, on only when exactly `true`). It adds up commitments and spending the person typed in; no bank connection, no advice, no network calls. Amounts are whole minor units; a deletion erases the entry.
 - Offline merges are timestamp- and tombstone-based. Divergent copies without a shared baseline are kept, not guessed.
 
 ## Product
