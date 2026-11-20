@@ -1,4 +1,4 @@
-# BUHAY.OS Release 2 — Connect the Parts of Life
+# HANAY Release 2 — Connect the Parts of Life
 
 ## Product gate
 
@@ -7,7 +7,7 @@
 - **Who it serves:** Individuals balancing personal responsibilities, work, learning, projects, and everyday routines.
 - **Why it matters:** It should reduce the effort of keeping a life organized and make progress easier to understand, without turning private planning into a scorecard.
 
-The gate is consistent with BUHAY.OS's existing “Capture → Organize → Plan → Do → Review” journey. It does not authorize expanding server visibility into planner content.
+The gate is consistent with HANAY's existing “Capture → Organize → Plan → Do → Review” journey. It does not authorize expanding server visibility into planner content.
 
 ## Audited baseline and constraints
 

@@ -37,7 +37,7 @@ function ConfirmDelete({ memory, onCancel, onConfirm }: { memory: PlannerMemory;
 }
 
 /**
- * Everything BUHAY.OS remembers, for the person who saved it. Private memories are shown here and nowhere
+ * Everything HANAY remembers, for the person who saved it. Private memories are shown here and nowhere
  * else; they are never given to another part of the app.
  */
 export default function MemoryPage({ memories, problem, titleOf, onAdd, onEdit, onSetPrivate, onDelete, onKeep }: Props) {
@@ -155,7 +155,7 @@ export default function MemoryPage({ memories, problem, titleOf, onAdd, onEdit, 
 
                 {undecided && (
                   <div className="mem-decide" role="group" aria-label="This memory's source was disconnected" data-testid={`decide-memory-${memory.id}`}>
-                    <p><strong>Where this came from was disconnected.</strong> Until you decide, nothing else in Buhay.OS will use it. Keep it, or delete it?</p>
+                    <p><strong>Where this came from was disconnected.</strong> Until you decide, nothing else in HANAY will use it. Keep it, or delete it?</p>
                     <div className="mem-actions" style={{ marginTop: 0 }}>
                       <button type="button" className="mem-btn" onClick={() => act(onKeep(memory.id))} data-testid={`button-keep-memory-${memory.id}`}>Keep this memory</button>
                       <button type="button" className="mem-btn" onClick={() => setConfirming(memory)} data-testid={`button-decide-delete-memory-${memory.id}`}><Trash2 size={13} aria-hidden="true" /> Delete it</button>

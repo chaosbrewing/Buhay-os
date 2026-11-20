@@ -109,9 +109,9 @@ test('a tampered file, a damaged file and an unrelated file are rejected without
   await page.keyboard.press('Escape');
 
   await importText(page, text.slice(0, text.length - 40));
-  await expect(page.getByTestId('status-message')).toContainText('not a valid Buhay.OS backup');
+  await expect(page.getByTestId('status-message')).toContainText('not a valid HANAY backup');
   await importText(page, '{"hello":"world"}');
-  await expect(page.getByTestId('status-message')).toContainText('not a valid Buhay.OS backup');
+  await expect(page.getByTestId('status-message')).toContainText('not a valid HANAY backup');
   expect(await page.getByTestId('snapshot').textContent()).toBe(before);
 });
 

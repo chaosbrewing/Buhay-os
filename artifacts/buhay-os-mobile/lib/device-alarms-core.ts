@@ -68,7 +68,7 @@ export function nativeAlarmInput(alarm: DeviceAlarm): NativeAlarmInput {
   const date = new Date(alarm.at);
   return {
     id: alarm.id, timestamp: alarm.at, hour: date.getHours(), minute: date.getMinutes(),
-    title: 'Buhay.OS alarm',
+    title: 'HANAY alarm',
     ios: {
       alertActionMode: 'default', stopIntentBehavior: 'recordOnly', secondaryButtonBehavior: 'none',
     },
@@ -160,7 +160,7 @@ export function createDeviceAlarmService(
           await writeManifest({ version: 1, owner, ids: [] });
           for (const id of state.ids) await storage.remove(recordKey(id));
         } else {
-          // This module is used exclusively for BUHAY.OS device alarms.
+          // This module is used exclusively for HANAY device alarms.
           await cancelIds(scheduled.filter((item) => !state.ids.includes(item.id)).map((item) => item.id));
         }
       });

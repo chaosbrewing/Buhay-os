@@ -1,6 +1,6 @@
-# Buhay.OS Mobile
+# HANAY Mobile
 
-An Expo companion for iOS and Android. It uses the existing Buhay.OS Clerk account and the existing authenticated API; it does not introduce a second backend or planner database.
+An Expo companion for iOS and Android. It uses the existing HANAY Clerk account and the existing authenticated API; it does not introduce a second backend or planner database.
 
 ## Device alarms
 
@@ -11,7 +11,7 @@ True alarms require iOS 26+ or Android and do not work in Expo Go. This integrat
 
 ## Run in this workspace
 
-Use the configured **Buhay.OS Mobile** Expo workflow, or run `pnpm --filter @workspace/buhay-os-mobile run dev` in a configured Replit Expo environment. For a local workspace, provide the same Clerk publishable key and API domain already used by the web project as `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` and `EXPO_PUBLIC_DOMAIN`; never put a Clerk secret or Google OAuth secret in the app.
+Use the configured **HANAY Mobile** Expo workflow, or run `pnpm --filter @workspace/buhay-os-mobile run dev` in a configured Replit Expo environment. For a local workspace, provide the same Clerk publishable key and API domain already used by the web project as `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` and `EXPO_PUBLIC_DOMAIN`; never put a Clerk secret or Google OAuth secret in the app.
 
 Sign in with the existing account, then enter the separate planner encryption passphrase used by the web planner. It is not your account password and is never stored. The credential session uses Expo SecureStore. The offline copy contains encrypted snapshots only.
 

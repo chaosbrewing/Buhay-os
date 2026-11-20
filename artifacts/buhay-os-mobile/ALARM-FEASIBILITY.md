@@ -1,4 +1,4 @@
-# BUHAY.OS closed-app alarm feasibility
+# HANAY closed-app alarm feasibility
 
 Investigation date: 2026-10-16.
 
@@ -38,7 +38,7 @@ On Android 15, a user force-stopping the app cancels its pending intents. Closin
 
 1. Keep existing authentication, backend and encrypted snapshot envelope. Add only backward-compatible optional alarm configuration after finalizing the supported-OS scope.
 2. Use stable source references for tasks, habits, routines and authorized calendar events, with per-device OS alarm identifiers. Calendar event access remains subject to existing Google permissions; no Google secret belongs in the native client.
-3. Schedule real OS alarms while the planner is unlocked. Default OS-visible content to a generic BUHAY.OS alarm, exposing only the timing and minimum identifiers needed for delivery, not decrypted journal/task content.
+3. Schedule real OS alarms while the planner is unlocked. Default OS-visible content to a generic HANAY alarm, exposing only the timing and minimum identifiers needed for delivery, not decrypted journal/task content.
 4. Explain that the operating system necessarily knows the scheduled time and alarm presentation. This is device-local scheduling metadata, not plaintext planner data sent to the backend.
 5. Separate planner lock from logout/account change. A deliberately scheduled generic alarm must be able to ring after planner lock; logout/account change must cancel the previous account's scheduled alarms. Stop/snooze must work without exposing encrypted planner content.
 6. Reconcile edits, completions, skips, pauses, deletes, recurrence exceptions, DST/timezone changes, permission revocation and reboots. Use the shared planner schedule rules rather than duplicating business logic.

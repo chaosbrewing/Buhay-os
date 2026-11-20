@@ -333,7 +333,7 @@ export default function CaptureScreen() {
                     <Text style={[styles.calendarCopy, { color: colors.mutedForeground }]}>Notification access could not be checked on this device.</Text>
                   ) : planner.reminderPermission?.canAskAgain === false ? (
                     <>
-                      <Text style={[styles.calendarCopy, { color: colors.mutedForeground }]}>Notifications are blocked for Buhay.OS. Change this in device settings to receive reminders.</Text>
+                      <Text style={[styles.calendarCopy, { color: colors.mutedForeground }]}>Notifications are blocked for HANAY. Change this in device settings to receive reminders.</Text>
                       <ActionButton label="Open notification settings" variant="quiet" icon="settings" onPress={() => void planner.openReminderSettings()} testID="button-open-reminder-settings" />
                     </>
                   ) : (

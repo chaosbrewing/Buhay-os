@@ -1,4 +1,4 @@
-# BUHAY.OS web launch remediation
+# HANAY web launch remediation
 
 ## Release boundary
 

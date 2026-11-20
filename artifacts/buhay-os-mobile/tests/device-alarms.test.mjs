@@ -37,7 +37,7 @@ test('task/habit/routine/event alarms use generic OS text and no sensitive sourc
     const f = fixture();
     await f.service.activateAccount('account-a');
     await f.service.schedule('account-a', { kind, id: 'opaque', title: 'Secret doctor visit', calendarId: kind === 'event' ? 'calendar' : undefined }, future);
-    assert.equal(f.requests[0].title, 'Buhay.OS alarm');
+    assert.equal(f.requests[0].title, 'HANAY alarm');
     assert.equal(f.requests[0].timestamp, future);
     assert.equal(JSON.stringify(f.requests).includes('opaque'), false);
     assert.equal(JSON.stringify(f.requests).includes('Secret'), false);
@@ -237,5 +237,5 @@ test('pinned iOS patch uses a fixed date and retains records on cancellation err
   const cancellation = swift.slice(swift.indexOf('  func cancel(id:'), swift.indexOf('  func cancelNativeAndRetryAlarms('));
   assert.doesNotMatch(cancellation, /try\? AlarmManager.shared.cancel/);
   assert.match(swift, /Preserve native metadata[\s\S]*return false/);
-  assert.equal(nativeAlarmInput({ id: 'id', source, at: future }).title, 'Buhay.OS alarm');
+  assert.equal(nativeAlarmInput({ id: 'id', source, at: future }).title, 'HANAY alarm');
 });

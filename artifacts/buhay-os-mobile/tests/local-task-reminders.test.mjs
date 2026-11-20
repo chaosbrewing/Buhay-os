@@ -49,7 +49,7 @@ function createAdapter(platform = 'ios') {
   return { scheduler, scheduled, cancelled, remindersScheduled, channels };
 }
 
-test('declining notifications clears old Buhay.OS alerts and keeps unrelated notifications', async () => {
+test('declining notifications clears old HANAY alerts and keeps unrelated notifications', async () => {
   const state = createAdapter();
   await state.scheduler.reconcile([task()], true, now);
   assert.equal(state.remindersScheduled.length, 1);

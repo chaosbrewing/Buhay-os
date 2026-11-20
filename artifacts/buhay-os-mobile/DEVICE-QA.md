@@ -1,4 +1,4 @@
-# Buhay.OS Mobile Sign-In and Encryption QA
+# HANAY Mobile Sign-In and Encryption QA
 
 Device alarms have a separate implementation and physical-device gate checklist in
 [ALARMS.md](./ALARMS.md). No alarm delivery/device checks have been completed here.
@@ -19,7 +19,7 @@ The workspace has no registered Expo devices (`artifacts/buhay-os-mobile/.expo/d
 
 Repeat these steps on both a physical iOS phone and a physical Android phone using the same isolated test account and test planner:
 
-1. Launch the existing Buhay.OS mobile app and sign in through the supported email/password flow. If Clerk requests an email verification code, request and enter it.
+1. Launch the existing HANAY mobile app and sign in through the supported email/password flow. If Clerk requests an email verification code, request and enter it.
 2. Confirm the app opens the planner unlock screen after account authentication.
 3. Enter the separate planner encryption passphrase used to create the isolated test planner. Confirm the same non-sensitive test marker is visible on both phones.
 4. Lock the planner and try an incorrect passphrase. Confirm the planner stays locked and no planner content is shown.
@@ -60,7 +60,7 @@ Use a non-production test account and planner with no sensitive content. Record 
 3. **Lock and restart:** Allow notifications again, create a future reminder, lock the screen and confirm delivery. Create another reminder, force-close and relaunch the app, leave the planner locked if possible, and confirm the OS still delivers the already scheduled alert.
 4. **Daylight-saving change:** In a planner time zone that observes DST, create a daily recurring task at a fixed local wall-clock time spanning the next DST change. Confirm the reminder keeps the same local lead time before and after the clock change.
 5. **Cancellation:** For separate future reminders, edit the due date/time or reminder lead time, turn the reminder off, complete the task, and delete the task. Confirm the old alert does not arrive in each case; for an edited task, confirm only the new alert arrives.
-6. Repeat the full sequence on iOS and Android. On Android, confirm Buhay.OS task reminders remain enabled on the “Task reminders” notification channel.
+6. Repeat the full sequence on iOS and Android. On Android, confirm HANAY task reminders remain enabled on the “Task reminders” notification channel.
 
 ### Workspace checks
 

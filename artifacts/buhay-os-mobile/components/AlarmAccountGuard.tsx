@@ -43,7 +43,7 @@ export function AlarmAccountGuard({ children }: { children: ReactNode }) {
                 <Text style={{ color: colors.primary, fontFamily: 'DMSans_600SemiBold' }}>Enable alarm access</Text>
               </Pressable>
               <Pressable accessibilityRole="button" accessibilityLabel="Recover unreadable alarm records"
-                onPress={() => Alert.alert('Cancel all device alarms and recover?', 'This cancels BUHAY.OS alarms on this device and resets only its alarm index. Planner data, cloud snapshots and backups are not changed.', [
+                onPress={() => Alert.alert('Cancel all device alarms and recover?', 'This cancels HANAY alarms on this device and resets only its alarm index. Planner data, cloud snapshots and backups are not changed.', [
                   { text: 'Keep alarms', style: 'cancel' },
                   { text: 'Cancel alarms and recover', style: 'destructive', onPress: () => {
                     void deviceAlarms.recoverJournal(owner).then(() => setRetry((value) => value + 1))

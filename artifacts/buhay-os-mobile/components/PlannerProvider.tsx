@@ -619,7 +619,7 @@ export function PlannerProvider({
         setSyncStatus(isOnline ? 'queued' : 'offline');
         return true;
       } catch {
-        setUnlockError('That passphrase did not unlock Buhay.OS. Check it carefully; it cannot be recovered.');
+        setUnlockError('That passphrase did not unlock HANAY. Check it carefully; it cannot be recovered.');
         return false;
       }
     },

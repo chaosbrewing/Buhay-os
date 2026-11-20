@@ -324,46 +324,64 @@ button:disabled{opacity:.55;cursor:not-allowed;transform:none}
 }
 
 /* ==========================================================================
-   Mockup visual layer (UI-1): misty green light theme, forest-green dark theme,
-   translucent "glass" surfaces, sans headings. Tokens above are overridden here
-   so every page picks the look up without markup changes.
-   Contrast notes: text tokens keep >= 4.5:1 on their surfaces; glass surfaces stay
-   >= 78% opaque so text never sits on busy imagery.
+   ORIGIN Glass (HANAY): Daylight and Midnight themes.
+   Daylight: pearl and sage with a forest-green primary, muted-gold accents.
+   Midnight: deep forest and obsidian with celadon light and faint star points.
+   Surfaces are translucent "glass" but stay >= 78% opaque so text never sits on busy
+   imagery. Text pairs are checked at >= 4.5:1 by src/theme-contrast.test.mjs.
+   Tokens above are overridden here so every page picks the look up without markup changes.
    ========================================================================== */
 :root {
-  --background: 140 30% 96%; --foreground: 160 32% 13%; --border: 145 20% 82%;
-  --card: 0 0% 100%; --card-foreground: 160 32% 13%; --card-border: 145 22% 86%;
-  --sidebar: 140 30% 97%; --sidebar-foreground: 160 32% 13%; --sidebar-border: 145 20% 84%;
-  --sidebar-primary: 143 52% 28%; --sidebar-primary-foreground: 0 0% 100%; --sidebar-accent: 143 45% 90%; --sidebar-accent-foreground: 160 32% 13%; --sidebar-ring: 143 52% 28%;
-  --popover: 0 0% 100%; --popover-foreground: 160 32% 13%; --popover-border: 145 20% 84%;
-  --primary: 143 52% 28%; --primary-foreground: 0 0% 100%; --secondary: 143 40% 91%; --secondary-foreground: 160 32% 18%;
-  --muted: 140 24% 92%; --muted-foreground: 158 14% 33%; --accent: 143 45% 88%; --accent-foreground: 160 32% 18%;
-  --input: 145 16% 68%; --ring: 143 52% 28%;
+  --background: 90 20% 96%; --foreground: 160 32% 13%; --border: 135 16% 82%;
+  --card: 0 0% 100%; --card-foreground: 160 32% 13%; --card-border: 135 18% 87%;
+  --sidebar: 90 22% 97%; --sidebar-foreground: 160 32% 13%; --sidebar-border: 135 16% 84%;
+  --sidebar-primary: 146 50% 24%; --sidebar-primary-foreground: 0 0% 100%; --sidebar-accent: 135 28% 88%; --sidebar-accent-foreground: 160 32% 13%; --sidebar-ring: 146 50% 24%;
+  --popover: 0 0% 100%; --popover-foreground: 160 32% 13%; --popover-border: 135 16% 84%;
+  --primary: 146 50% 24%; --primary-foreground: 0 0% 100%; --secondary: 135 26% 91%; --secondary-foreground: 160 32% 18%;
+  --muted: 100 16% 92%; --muted-foreground: 158 14% 33%; --accent: 42 48% 85%; --accent-foreground: 36 45% 17%;
+  --gold: 42 47% 47%; --celadon: 136 36% 72%;
+  --destructive: 4 62% 40%; --destructive-foreground: 0 0% 100%;
+  --input: 145 16% 68%; --ring: 146 50% 24%;
   --app-font-sans: 'DM Sans', system-ui, sans-serif; --app-font-serif: 'DM Sans', system-ui, sans-serif;
   --radius: 1.25rem;
   --glass: rgba(255,255,255,.8); --glass-strong: rgba(255,255,255,.92); --glass-edge: rgba(255,255,255,.7);
   --glass-shadow: 0 10px 34px rgba(34,80,52,.09);
   --page-bg:
-    radial-gradient(900px 520px at 92% -8%, hsl(138 50% 88% / .9), transparent 62%),
-    radial-gradient(760px 480px at -6% 104%, hsl(150 45% 90% / .9), transparent 60%),
-    linear-gradient(180deg, hsl(140 32% 97%), hsl(145 28% 94%));
+    radial-gradient(900px 520px at 92% -8%, hsl(136 34% 87% / .9), transparent 62%),
+    radial-gradient(760px 480px at -6% 104%, hsl(120 22% 90% / .9), transparent 60%),
+    linear-gradient(180deg, hsl(90 24% 97%), hsl(100 18% 94%));
 }
 .dark {
-  --background: 165 38% 8%; --foreground: 140 22% 93%; --border: 158 22% 24%;
-  --card: 164 34% 14%; --card-foreground: 140 22% 93%; --card-border: 158 24% 26%;
-  --sidebar: 165 38% 10%; --sidebar-foreground: 140 22% 93%; --sidebar-border: 158 22% 22%;
-  --sidebar-primary: 142 55% 54%; --sidebar-primary-foreground: 165 40% 8%; --sidebar-accent: 156 32% 20%; --sidebar-accent-foreground: 140 22% 93%; --sidebar-ring: 142 55% 54%;
-  --popover: 164 34% 14%; --popover-foreground: 140 22% 93%; --popover-border: 158 24% 26%;
-  --primary: 142 55% 54%; --primary-foreground: 165 40% 8%; --secondary: 158 28% 20%; --secondary-foreground: 140 22% 93%;
-  --muted: 160 26% 18%; --muted-foreground: 148 14% 72%; --accent: 156 32% 22%; --accent-foreground: 140 22% 93%;
-  --input: 156 18% 40%; --ring: 142 55% 54%;
-  --glass: rgba(16,48,38,.78); --glass-strong: rgba(14,42,33,.92); --glass-edge: rgba(120,200,160,.16);
+  --background: 165 40% 6%; --foreground: 140 22% 93%; --border: 158 22% 24%;
+  --card: 164 34% 13%; --card-foreground: 140 22% 93%; --card-border: 158 24% 26%;
+  --sidebar: 165 40% 8%; --sidebar-foreground: 140 22% 93%; --sidebar-border: 158 22% 22%;
+  --sidebar-primary: 146 48% 60%; --sidebar-primary-foreground: 165 40% 8%; --sidebar-accent: 156 32% 20%; --sidebar-accent-foreground: 140 22% 93%; --sidebar-ring: 146 48% 60%;
+  --popover: 164 34% 13%; --popover-foreground: 140 22% 93%; --popover-border: 158 24% 26%;
+  --primary: 146 48% 60%; --primary-foreground: 165 40% 8%; --secondary: 158 28% 20%; --secondary-foreground: 140 22% 93%;
+  --muted: 160 26% 17%; --muted-foreground: 148 14% 72%; --accent: 40 30% 24%; --accent-foreground: 42 55% 88%;
+  --gold: 42 52% 62%; --celadon: 136 36% 72%;
+  --destructive: 4 62% 66%; --destructive-foreground: 165 40% 8%;
+  --input: 156 18% 40%; --ring: 146 48% 60%;
+  --glass: rgba(16,48,38,.78); --glass-strong: rgba(14,42,33,.92); --glass-edge: rgba(150,220,185,.16);
   --glass-shadow: 0 12px 38px rgba(0,0,0,.35);
+  /* Faint star points over a deep forest wash. Static, tiny and low-contrast so they never compete with text. */
   --page-bg:
-    radial-gradient(800px 520px at 88% -6%, hsl(150 55% 22% / .55), transparent 62%),
-    radial-gradient(700px 460px at -4% 100%, hsl(165 50% 18% / .6), transparent 60%),
-    linear-gradient(180deg, hsl(166 40% 9%), hsl(168 38% 6%));
+    radial-gradient(1.2px 1.2px at 9% 14%, hsl(140 40% 92% / .55), transparent 100%),
+    radial-gradient(1px 1px at 23% 61%, hsl(140 40% 92% / .4), transparent 100%),
+    radial-gradient(1.4px 1.4px at 37% 28%, hsl(45 70% 85% / .5), transparent 100%),
+    radial-gradient(1px 1px at 52% 83%, hsl(140 40% 92% / .35), transparent 100%),
+    radial-gradient(1.2px 1.2px at 66% 12%, hsl(140 40% 92% / .5), transparent 100%),
+    radial-gradient(1px 1px at 78% 47%, hsl(45 70% 85% / .4), transparent 100%),
+    radial-gradient(1.4px 1.4px at 91% 72%, hsl(140 40% 92% / .5), transparent 100%),
+    radial-gradient(1px 1px at 5% 90%, hsl(140 40% 92% / .35), transparent 100%),
+    radial-gradient(800px 520px at 88% -6%, hsl(150 55% 20% / .55), transparent 62%),
+    radial-gradient(700px 460px at -4% 100%, hsl(165 50% 16% / .6), transparent 60%),
+    linear-gradient(180deg, hsl(166 42% 8%), hsl(168 40% 5%));
 }
+.brand-logo-dark { display:none; }
+.dark .brand-logo-light { display:none; }
+.dark .brand-logo-dark { display:block; }
+.dark .surface,.dark .section-card,.dark .settings-card { box-shadow:var(--glass-shadow), inset 0 1px 0 hsl(160 60% 80% / .07); }
 body { background:var(--page-bg, hsl(var(--background))); background-attachment:fixed; }
 .page-heading h1 { font-weight:700; font-size:clamp(28px,3.2vw,36px); letter-spacing:-.6px; line-height:1.15; }
 .section-title h2,.settings-card h2,.template-card h3,.dialog-head h2,.dashboard-controls h2 { font-weight:650; letter-spacing:-.2px; }

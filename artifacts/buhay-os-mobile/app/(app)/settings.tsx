@@ -18,7 +18,7 @@ export default function SettingsScreen() {
 
   const signOutSafely = () => {
     Alert.alert(
-      'Sign out of Buhay.OS?',
+      'Sign out of HANAY?',
       'Your encrypted on-device planner copy stays on this account’s device. Your passphrase and decryption key are not saved.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -43,7 +43,7 @@ export default function SettingsScreen() {
     <Screen
       eyebrow="Your account and device"
       title="Settings"
-      subtitle="The mobile companion shares your Buhay.OS account, planner, and encryption passphrase."
+      subtitle="The mobile companion shares your HANAY account, planner, and encryption passphrase."
     >
       <SectionHeading title="Account" />
       <Surface style={styles.accountCard}>
@@ -129,7 +129,7 @@ export default function SettingsScreen() {
       ) : null}
       <ActionButton label="Sign out" icon="log-out" variant="danger" onPress={signOutSafely} testID="sign-out" />
       <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-        Buhay.OS Mobile · Release 1 features will appear here after their shared planner and API contracts are ready.
+        HANAY Mobile · Release 1 features will appear here after their shared planner and API contracts are ready.
       </Text>
     </Screen>
   );

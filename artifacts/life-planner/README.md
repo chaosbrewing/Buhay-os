@@ -1,6 +1,6 @@
-# Buhay.OS Life Planner
+# HANAY Life Planner
 
-Buhay.OS is a private web planner for daily and weekly plans, projects, Inbox capture, habits, routines, notes, templates, Google Calendar, and longer-term intentions. Planner content is encrypted in the browser before cloud sync. The separate encryption passphrase is not the Clerk account password and cannot be recovered.
+HANAY is a private web planner for daily and weekly plans, projects, Inbox capture, habits, routines, notes, templates, Google Calendar, and longer-term intentions. Planner content is encrypted in the browser before cloud sync. The separate encryption passphrase is not the Clerk account password and cannot be recovered.
 
 ## Web release status
 

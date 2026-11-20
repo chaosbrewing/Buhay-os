@@ -115,7 +115,7 @@ export default function CalendarScreen() {
     <Screen
       eyebrow={mode === 'timeline' ? 'Your planner, in date order' : 'Your connected calendars'}
       title={mode === 'timeline' ? 'Timeline' : 'Calendar'}
-      subtitle={mode === 'timeline' ? 'Dated tasks, notes, habit completions, and milestones from your unlocked planner.' : 'View Google Calendar events for this week. Event access stays on the Buhay.OS server.'}
+      subtitle={mode === 'timeline' ? 'Dated tasks, notes, habit completions, and milestones from your unlocked planner.' : 'View Google Calendar events for this week. Event access stays on the HANAY server.'}
     >
       <View style={styles.modeSwitch}>
         <Pill label="Planner timeline" icon="clock" selected={mode === 'timeline'} onPress={() => setMode('timeline')} accessibilityLabel="Show planner timeline" />

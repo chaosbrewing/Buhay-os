@@ -163,7 +163,7 @@ export default function SignInScreen() {
           <Image
             source={require('../../assets/images/wordmark.png')}
             resizeMode="contain"
-            accessibilityLabel="Buhay.OS"
+            accessibilityLabel="HANAY"
             style={styles.logo}
           />
           <Text style={[styles.eyebrow, { color: colors.mutedForeground }]}>YOUR LIFE, IN ORBIT</Text>
@@ -177,7 +177,7 @@ export default function SignInScreen() {
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             {isVerifying
               ? 'Enter the one-time code. Your planner encryption passphrase is separate.'
-              : 'Sign in to your existing Buhay.OS account to sync your planner across devices.'}
+              : 'Sign in to your existing HANAY account to sync your planner across devices.'}
           </Text>
 
           {isVerifying ? (
@@ -264,7 +264,7 @@ export default function SignInScreen() {
                 style={styles.textButton}
               >
                 <Text style={[styles.linkText, { color: colors.primary }]}>
-                  {mode === 'sign-up' ? 'Already have an account? Sign in' : 'New to Buhay.OS? Create an account'}
+                  {mode === 'sign-up' ? 'Already have an account? Sign in' : 'New to HANAY? Create an account'}
                 </Text>
               </Pressable>
             </>

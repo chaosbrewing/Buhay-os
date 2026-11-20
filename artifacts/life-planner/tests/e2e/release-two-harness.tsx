@@ -103,7 +103,7 @@ function ReleaseTwoHarness() {
       setData(parsePlannerBackup(await file.text()));
       setMessage('Backup restored on this device');
     } catch {
-      setMessage('That file could not be read as a Buhay.OS backup');
+      setMessage('That file could not be read as a HANAY backup');
     }
     if (importRef.current) importRef.current.value = '';
   };

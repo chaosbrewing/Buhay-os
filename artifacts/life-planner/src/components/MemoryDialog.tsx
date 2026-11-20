@@ -76,7 +76,7 @@ export default function MemoryDialog({ dialog, onSubmit, onClose }: Props) {
         {editing && <p className="mem-dialog-context">Earlier wording is kept, so you can see how this changed.</p>}
 
         <form onSubmit={submit} noValidate>
-          <label htmlFor="mem-text">What should Buhay.OS remember?</label>
+          <label htmlFor="mem-text">What should HANAY remember?</label>
           <textarea
             id="mem-text"
             value={text}
@@ -98,7 +98,7 @@ export default function MemoryDialog({ dialog, onSubmit, onClose }: Props) {
               <input id="mem-private" type="checkbox" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} data-testid="checkbox-memory-private" />
               <div>
                 <strong>Keep this private</strong>
-                <span>Only you can see it. Nothing else in Buhay.OS will use it.</span>
+                <span>Only you can see it. Nothing else in HANAY will use it.</span>
               </div>
             </label>
           </div>

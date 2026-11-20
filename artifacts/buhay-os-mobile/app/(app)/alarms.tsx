@@ -74,7 +74,7 @@ export default function AlarmsScreen() {
       .find((item) => item.id === value.id)?.title ?? 'Unavailable item';
   return (
     <Screen title="Device alarms" eyebrow="A time to act"
-      subtitle="One-time alarms for this device. Lock-screen labels always say “Buhay.OS alarm” — never your private item title.">
+      subtitle="One-time alarms for this device. Lock-screen labels always say “HANAY alarm” — never your private item title.">
       <ActionButton label="Back to settings" variant="quiet" onPress={() => router.replace('/(app)/settings')} />
       <Surface style={styles.card}>
         <Text style={[styles.copy, { color: colors.foreground }]}>{alarmAvailability.reason}</Text>

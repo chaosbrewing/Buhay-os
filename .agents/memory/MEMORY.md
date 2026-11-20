@@ -1,9 +1,9 @@
-- [Buhay.OS E2EE constraint](daybook-encryption.md) — keep habits optional, encrypted, and mergeable across offline date edits.
-- [Buhay.OS branding](buhay-os-branding.md) — The planner’s public name is Buhay.OS, using the user-provided orb-and-wordmark logo.
+- [HANAY E2EE constraint](daybook-encryption.md) — keep habits optional, encrypted, and mergeable across offline date edits.
+- [HANAY branding](buhay-os-branding.md) — The planner’s public name is HANAY, using the user-provided orb-and-wordmark logo.
 - [Google Calendar list permissions](google-calendar-permissions.md) — calendar-list access is separate from event access; old connections need reauthorization to choose calendars.
 - [API route tests and workspace TypeScript](api-route-test-runtime.md) — bundle tests that import workspace TS packages before running them with native Node.
 - [Routine run history](routine-run-history.md) — preserve run snapshots; merge step corrections by timestamp and deletions as tombstones.
-- [BUHAY.OS web-first scope](buhay-os-web-first-scope.md) — Keep releases web-only; hold the Expo companion until the user explicitly authorizes native work.
+- [HANAY web-first scope](buhay-os-web-first-scope.md) — Keep releases web-only; hold the Expo companion until the user explicitly authorizes native work.
 - [Expo Router Stack children](expo-router-stack-children.md) — Keep Stack.Screen children flat; a fragment can crash Expo Router’s web preview.
 - [Live browser verification](live-browser-verification.md) — freeze hook structure during testing; distinguish Fast Refresh signature failures from fresh-page defects.
 - [Responsive navigation](navigation-scope.md) — phone tabs Today/Planner/Capture/Review/You (D3, 2026-10-25) and grouped collapsible desktop navigation.
