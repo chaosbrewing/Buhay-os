@@ -141,6 +141,12 @@ export const GetGoogleCalendarConnectionResponse = zod.object({
 
 
 /**
+ * @summary Remove the signed-in user's Google Calendar connection
+ */
+export const DisconnectGoogleCalendarResponse = zod.void()
+
+
+/**
  * @summary List available Google calendars and the signed-in user's selection
  */
 export const ListGoogleCalendarsResponse = zod.object({
@@ -164,12 +170,6 @@ export const UpdateGoogleCalendarSelectionBody = zod.object({
 export const UpdateGoogleCalendarSelectionResponse = zod.object({
   "selectedCalendarIds": zod.array(zod.string())
 })
-
-
-/**
- * @summary Remove the signed-in user's Google Calendar connection
- */
-export const DisconnectGoogleCalendarResponse = zod.void()
 
 
 /**

@@ -82,12 +82,11 @@ test("all-day labels and edit dates stay fixed across browser time zones while t
     assert.equal(result.draftEnd, "2026-03-09", `edit end in ${timeZone}`);
     assert.equal(result.savedStart, "2026-03-07", `saved start in ${timeZone}`);
     assert.equal(result.savedExclusiveEnd, "2026-03-10", `exclusive saved end in ${timeZone}`);
-    assert.match(result.label, /March 7.*March 9.*All day/, `all-day label in ${timeZone}`);
-    assert.equal(
-      result.timedLabel,
-      "Sunday, March 8 · 1:30 AM – 3:30 AM (America/New_York)",
-      `timed label in ${timeZone}`,
-    );
+    // Labels use the machine's locale (e.g. "March 7" in en-US, "7 March" in
+    // en-AU), so check the dates and times rather than one locale's wording.
+    // The cross-zone equality check below is what proves zone independence.
+    assert.match(result.label, /\b7\b.*\b9\b.*All day/, `all-day label in ${timeZone}`);
+    assert.match(result.timedLabel, /\b8\b.*\b1:30\b.*\b3:30\b.*\(America\/New_York\)$/i, `timed label in ${timeZone}`);
 
     const labels = { allDay: result.label, timed: result.timedLabel };
     if (referenceLabels) assert.deepEqual(labels, referenceLabels, `labels in ${timeZone}`);

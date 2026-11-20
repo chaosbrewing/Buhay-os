@@ -8,12 +8,17 @@
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "TZ=Pacific/Kiritimati node --experimental-strip-types --test src/*.test.mjs",
+    "test": "node --experimental-strip-types --import ./src/test-timezone.mjs --test \"src/*.test.mjs\"",
     "test:e2e": "playwright test -c playwright.calendar.config.mjs",
     "test:e2e:calendar": "playwright test -c playwright.calendar.config.mjs tests/e2e/calendar-recovery.spec.mjs",
     "test:e2e:recurrence": "playwright test -c playwright.recurrence.config.mjs",
     "test:e2e:release-two": "playwright test -c playwright.release-two.config.mjs",
-    "test:e2e:habits": "playwright test -c playwright.habits.config.mjs"
+    "test:e2e:habits": "playwright test -c playwright.habits.config.mjs",
+    "test:e2e:memory": "playwright test -c playwright.memory.config.mjs",
+    "test:e2e:backup": "playwright test -c playwright.backup.config.mjs",
+    "test:e2e:journal": "playwright test -c playwright.journal.config.mjs",
+    "test:e2e:tuklas": "playwright test -c playwright.tuklas.config.mjs",
+    "test:e2e:planner": "playwright test -c playwright.planner.config.mjs"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",

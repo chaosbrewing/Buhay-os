@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import {
   findBrokenPlannerLinks, getGoalProgress, getMilestoneProgress, linkPlannerRecords,
-  markReleaseTwoDataUsed, plannerLinksFor, repairPlannerLink, saveLifeReview, RELEASE_TWO_FEATURE_FLAGS,
+  markReleaseTwoDataUsed, plannerLinksFor, repairPlannerLink, saveLifeReview,
   searchPlannerRecords, summarizeLifePeriod, unlinkPlannerRecord, buildPlannerTimeline,
 } from '@workspace/planner-contract/release2';
 import type { ReleaseTwoFeature } from '@workspace/planner-contract/release2';
@@ -32,7 +32,18 @@ export type ReleaseTwoPageProps = {
   featureFlags?: Record<ReleaseTwoFeature, boolean>;
 };
 
-const ReleaseTwoFeatureContext = createContext<Record<ReleaseTwoFeature, boolean>>(RELEASE_TWO_FEATURE_FLAGS);
+// Fail closed: a render that doesn't pass explicit flags must not expose
+// gated Release 2 areas.
+const RELEASE_TWO_FLAGS_OFF: Record<ReleaseTwoFeature, boolean> = {
+  goalsAndMilestones: false,
+  lifeAreas: false,
+  smartLinking: false,
+  universalTimeline: false,
+  lifeReviews: false,
+  unifiedSearch: false,
+};
+
+const ReleaseTwoFeatureContext = createContext<Record<ReleaseTwoFeature, boolean>>(RELEASE_TWO_FLAGS_OFF);
 
 type RecordEditor = { kind: 'goal'; item?: PlannerGoal } | { kind: 'area'; item?: PlannerLifeArea } |
   { kind: 'milestone'; goalId: string; item?: PlannerMilestone } | null;
@@ -516,7 +527,7 @@ function typeIcon(type: PlannerRecordRef['type']) {
 }
 
 export default function ReleaseTwoPage(props: ReleaseTwoPageProps) {
-  const flags = props.featureFlags ?? RELEASE_TWO_FEATURE_FLAGS;
+  const flags = props.featureFlags ?? RELEASE_TWO_FLAGS_OFF;
   const enabled = {
     goals: flags.goalsAndMilestones,
     lifeAreas: flags.lifeAreas,

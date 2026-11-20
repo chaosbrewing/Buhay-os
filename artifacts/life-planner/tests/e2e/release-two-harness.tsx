@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ReleaseTwoPage, { type ReleaseTwoSection } from '../../src/pages/ReleaseTwoPage';
 import type { ReleaseTwoPlannerData } from '../../src/lib/planner-model';
 import { normalizePlannerVersionSnapshot, parsePlannerBackup, serializePlannerBackup } from '../../src/planner-snapshot';
-import { recordExists, type PlannerRecordRef } from '@workspace/planner-contract/release2';
+import { RELEASE_TWO_FEATURE_FLAGS, recordExists, type PlannerRecordRef } from '@workspace/planner-contract/release2';
 import '../../src/index.css';
 
 const storagePrefix = '__release-two-e2e-account:';
@@ -150,7 +150,7 @@ function ReleaseTwoHarness() {
           universalTimeline: false,
           lifeReviews: false,
           unifiedSearch: false,
-        } : undefined}
+        } : RELEASE_TWO_FEATURE_FLAGS}
       />
       <pre hidden data-testid="text-test-snapshot">{serializePlannerBackup(data)}</pre>
     </div>

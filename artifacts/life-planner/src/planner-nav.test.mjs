@@ -6,11 +6,32 @@ const nav = readFileSync(new URL('./components/PlannerNav.tsx', import.meta.url)
 const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8');
 
-test('phone navigation has exactly five primary destinations', () => {
+test('phone navigation has exactly five primary destinations: Today, Planner, Capture, Review, You', () => {
   const bar = nav.slice(nav.indexOf('<nav className="mobile-nav"'));
-  for (const label of ['Today', 'Plan', 'Inbox', 'Notes', 'More']) assert.match(bar, new RegExp("'" + label + "'"));
+  assert.match(bar, /entry\('\/', 'Today', Flower2\)/);
+  const tabs = [...bar.matchAll(/\{tab\('(\w+)'\)\}/g)].map(([, id]) => id);
+  assert.deepEqual(tabs, ['planner', 'capture', 'review', 'you']);
+  for (const label of ['Planner', 'Capture', 'Review', 'You']) assert.match(nav, new RegExp("label: '" + label + "'"));
   assert.match(css, /grid-template-columns:repeat\(5,minmax\(0,1fr\)\);overflow:hidden/);
   assert.doesNotMatch(css, /mobile-nav\{display:flex;overflow-x:auto/);
+  // No page may override the five-column phone bar.
+  const calendar = readFileSync(new URL('./CalendarPage.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(calendar, /\.mobile-nav\{grid-template-columns/);
+});
+
+test('phone sheets keep every destination reachable and gate Release 2 links', () => {
+  const sheets = nav.slice(nav.indexOf('const sheets'), nav.indexOf('return { groups, account, sheets }'));
+  for (const path of ['/week', '/calendar', '/projects', '/habits', '/routines', '/templates', '/inbox', '/notes']) {
+    assert.ok(sheets.includes(`'${path}'`), `${path} missing from phone sheets`);
+  }
+  // The You sheet reuses the account entries (Settings, Versions).
+  assert.match(sheets, /you: \{[^}]*items: account/);
+  // Memory joins the account entries only when its route is enabled (VITE_BAKAS_MEMORIES).
+  assert.match(nav, /const account = \[entry\('\/settings', 'Settings', SettingsIcon\), \.\.\.\[entry\('\/memory', 'Memory', Brain\)\]\.filter\(on\), entry\('\/history', 'Versions', History\)\]/);
+  assert.match(sheets, /entry\('\/search', 'Search', Search\)\]\.filter\(on\)/);
+  assert.match(sheets, /\[entry\('\/reviews', 'Reviews', BookOpen\), \.\.\.timeline\]\.filter\(on\)/);
+  assert.match(sheets, /Reviews and Timeline are not switched on yet\. Your planner data is unchanged\./);
+  assert.match(nav, /role="status">\{open\.emptyNote\}/);
 });
 
 test('optional release-two links are filtered by enabled routes', () => {

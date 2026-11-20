@@ -165,6 +165,8 @@ test('create draft survives refresh and successful reconnect, then clears after 
 
 test('edited draft survives a denied reconnect callback and explicit discard clears it', async ({ page }) => {
   const api = await prepareBrowser(page, { oauthResult: 'error' });
+  // The Calendar opens on the month view; editing from the event list is in the List view.
+  await page.getByTestId('button-calendar-view-agenda').click();
   await page.getByRole('button', { name: 'Edit Planning session' }).click();
   await page.getByTestId('input-calendar-event-title').fill('Edited draft kept after denial');
   await page.getByTestId('input-calendar-event-description').fill('Unfinished edit');
@@ -190,4 +192,44 @@ test('edited draft survives a denied reconnect callback and explicit discard cle
   await expect.poll(() => page.evaluate((key) => sessionStorage.getItem(key), storageKey)).toBeNull();
   assert.deepEqual(api.selectedIds(), selectedCalendarIds);
   assert.equal(api.selectionWrites(), 0);
+});
+
+test.describe('month, week and day views', () => {
+  test.use({ timezoneId: 'America/Los_Angeles' });
+
+  test('the month view marks days that have events and lists them in the day panel', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-14T12:00:00') });
+    await prepareBrowser(page);
+    await expect(page.getByTestId('calendar-period-title')).toHaveText('October 2026');
+    await expect(page.getByTestId('calendar-day-2026-10-20')).toHaveAccessibleName(/Tuesday, October 20, 1 event/);
+    await page.getByTestId('calendar-day-2026-10-20').click();
+    await expect(page.getByTestId('calendar-day-panel')).toContainText('Planning session');
+    await page.getByTestId('calendar-day-2026-10-21').click();
+    await expect(page.getByTestId('calendar-day-panel')).toContainText('Nothing scheduled');
+    await page.getByTestId('button-calendar-next').click();
+    await expect(page.getByTestId('calendar-period-title')).toHaveText('November 2026');
+  });
+
+  test('week and day views follow the selected day, and the list view is still there', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-14T12:00:00') });
+    await prepareBrowser(page);
+    await page.getByTestId('calendar-day-2026-10-20').click();
+    await page.getByTestId('button-calendar-view-week').click();
+    await expect(page.getByTestId('calendar-period-title')).toContainText('–');
+    await expect(page.getByTestId('calendar-grid').locator('button')).toHaveCount(7);
+    await page.getByTestId('button-calendar-view-day').click();
+    await expect(page.getByTestId('calendar-period-title')).toHaveText('Tuesday, October 20');
+    await page.getByTestId('button-calendar-next').click();
+    await expect(page.getByTestId('calendar-period-title')).toHaveText('Wednesday, October 21');
+    await page.getByTestId('button-calendar-view-agenda').click();
+    await expect(page.getByTestId('list-calendar-events')).toBeVisible();
+  });
+
+  test('adding an event from a day starts the form on that day', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-14T12:00:00') });
+    await prepareBrowser(page);
+    await page.getByTestId('calendar-day-2026-10-22').click();
+    await page.getByTestId('button-new-calendar-event').click();
+    await expect(page.getByTestId('input-calendar-event-start')).toHaveValue('2026-10-22T09:00');
+  });
 });

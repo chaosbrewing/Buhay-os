@@ -32,6 +32,10 @@ VITE_RELEASE_TWO_LINKS = "false"
 VITE_RELEASE_TWO_REVIEWS = "false"
 VITE_RELEASE_TWO_SEARCH = "false"
 VITE_RELEASE_TWO_TIMELINE = "false"
+VITE_UGNAY_PLAN_DRAFTS = "false"
+VITE_BAKAS_MEMORIES = "false"
+VITE_JOURNAL = "false"
+VITE_TUKLAS = "false"
 
 [[ports]]
 localPort = 8080

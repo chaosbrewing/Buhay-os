@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   ArrowDown,
   ArrowUp,
+  Brain,
   Check,
   CheckCircle2,
   Clipboard,
@@ -17,6 +18,8 @@ import {
 import { getPlannerHabitHistory, getPlannerHabitWeek, summarizePlannerHabit } from '@/lib/planner-model';
 import { isPlannerRoutineStepComplete } from '@workspace/planner-contract';
 import type { InboxItem, PlannerHabit, PlannerRoutine, PlannerRoutineRun, RoutineStep, Task } from '@/lib/planner-model';
+import type { PlanDraft } from '@workspace/planner-contract/ugnay';
+import { planForInboxItem } from '@/planDrafts';
 
 export type ReleaseOneSection = 'inbox' | 'habits' | 'routines';
 
@@ -41,7 +44,20 @@ export type ReleaseOnePageProps = {
   onCompleteRoutineStep: (routineId: string, runId: string, stepId: string, completed: boolean) => void;
   onDeleteRoutineRun: (routineId: string, runId: string) => void;
   onDeleteRoutine: (id: string) => void;
+  /** Present only when plan drafts are switched on (VITE_UGNAY_PLAN_DRAFTS); absent means the feature is off. */
+  plans?: { drafts: PlanDraft[]; onTurnIntoPlan: (item: InboxItem) => void; onOpenDraft: (draftId: string) => void };
+  /** Present only when Memory is switched on (VITE_BAKAS_MEMORIES); absent means the feature is off. */
+  memory?: { onRemember: (item: InboxItem) => void };
 };
+
+function PlanButton({ item, plans }: { item: InboxItem; plans: NonNullable<ReleaseOnePageProps['plans']> }) {
+  const open = planForInboxItem(plans.drafts, item.id);
+  return (
+    <button type="button" onClick={() => (open ? plans.onOpenDraft(open.id) : plans.onTurnIntoPlan(item))} data-testid={`button-plan-inbox-${item.id}`}>
+      <ListChecks size={14} /> {open ? 'Review the plan' : 'Turn into a plan'}
+    </button>
+  );
+}
 
 type EditorState =
   | { kind: 'inbox'; item?: InboxItem }
@@ -309,6 +325,8 @@ export default function ReleaseOnePage({
   onSetHabitSkipped,
   onPauseHabit,
   onResumeHabit,
+  plans,
+  memory,
 }: ReleaseOnePageProps) {
   const [editor, setEditor] = useState<EditorState>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ kind: 'inbox' | 'habit' | 'routine'; id: string; title: string } | null>(null);
@@ -484,6 +502,11 @@ export default function ReleaseOnePage({
           .release-step-actions{grid-column:2;justify-content:flex-end}
           .release-step-actions .release-icon-button{width:34px;height:34px}
         }
+        .release-plans{margin:0 0 18px;padding:15px 17px;border:1px solid hsl(var(--border));border-radius:16px;background:hsl(var(--card))}
+        .release-plans h2{margin:0 0 9px;font-size:13px}
+        .release-plans ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+        .release-plans li{display:flex;align-items:center;justify-content:space-between;gap:12px}
+        .release-plans li span{min-width:0;overflow-wrap:anywhere;font-size:13px}
         @media(prefers-reduced-motion:reduce){.release-page *,.release-overlay{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
       `}</style>
 
@@ -509,6 +532,20 @@ export default function ReleaseOnePage({
           </div>
         </div>
       </section>
+
+      {section === 'inbox' && plans && plans.drafts.length > 0 && (
+        <section className="release-plans" aria-label="Plans waiting for you" data-testid="list-plan-drafts">
+          <h2>Plans waiting for you</h2>
+          <ul>
+            {plans.drafts.map((draft) => (
+              <li key={draft.id}>
+                <span>{draft.title}</span>
+                <button type="button" className="btn btn-quiet" onClick={() => plans.onOpenDraft(draft.id)} data-testid={`button-open-plan-${draft.id}`}>Review</button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {empty ? (
         <section className="release-empty" data-testid={`empty-${section}`}>
@@ -546,6 +583,8 @@ export default function ReleaseOnePage({
               <div className="release-convert" aria-label={`Convert ${item.title}`}>
                 <button type="button" onClick={() => onConvertInbox(item.id, 'task')} data-testid={`button-convert-inbox-task-${item.id}`}><Check size={14} /> Make a task</button>
                 <button type="button" onClick={() => onConvertInbox(item.id, 'note')} data-testid={`button-convert-inbox-note-${item.id}`}><FileText size={14} /> Keep as a note</button>
+                {plans && <PlanButton item={item} plans={plans} />}
+                {memory && <button type="button" onClick={() => memory.onRemember(item)} data-testid={`button-remember-inbox-${item.id}`}><Brain size={14} /> Remember this</button>}
               </div>
             </article>
           ))}

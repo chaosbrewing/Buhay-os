@@ -8,7 +8,7 @@ import {
   mergePlannerSnapshots,
   normalizePlannerData,
 } from './lib/planner-model.ts';
-import { getTodayWidgetOrder } from '@workspace/planner-contract';
+import { getPlannerHabitHistory, getTodayWidgetOrder } from '@workspace/planner-contract';
 
 const legacySnapshot = () => ({
   tasks: [
@@ -165,4 +165,57 @@ test('web habit controls expose measurable entry, pause and skip actions, and we
     'button-habit-history-previous',
     'history-habit-${habit.id}',
   ]) assert.ok(page.includes(control), `Missing web habit control: ${control}`);
+});
+
+test('Today habit widget uses the shared day status and handles measurable and paused habits', () => {
+  const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8');
+  const widget = app.slice(app.indexOf('data-testid="widget-today-habits"'), app.indexOf("if(widget==='routines')"));
+  assert.match(widget, /getPlannerHabitHistory\(habit,today\(\),today\(\)\)\[0\]/);
+  assert.match(widget, /setHabitProgress\(habit\.id,today\(\),habit\.measurement!\.goal\)/);
+  assert.match(widget, /disabled=\{paused\}/);
+  assert.doesNotMatch(widget, /completedDates\.includes\(today\(\)\)/);
+});
+
+test('day status reports measurable progress, completion and pauses for the Today widget', () => {
+  const habit = {
+    id: 'water', title: 'Water', completedDates: [],
+    measurement: { goal: 8, unit: 'glasses' },
+    progressEntries: [{ date: '2026-10-20', value: 3, changedAt: '2026-10-20T08:00:00.000Z' },
+      { date: '2026-10-21', value: 8, changedAt: '2026-10-21T20:00:00.000Z' }],
+    pausedRanges: [{ startDate: '2026-10-22' }],
+  };
+  const [partial, complete, paused] = getPlannerHabitHistory(habit, '2026-10-20', '2026-10-22', '2026-10-22');
+  assert.equal(partial.status, 'in-progress');
+  assert.equal(partial.value, 3);
+  assert.equal(complete.status, 'completed');
+  assert.equal(paused.status, 'paused');
+});
+
+test('header search results open the exact task or note, not just its page', () => {
+  const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8');
+  const panel = app.slice(app.indexOf('data-testid="panel-search-results"'));
+  assert.match(panel, /openPlannerRecord\(\{type:'task',id:t\.id\}\)/);
+  assert.match(panel, /openPlannerRecord\(\{type:'note',id:n\.id\}\)/);
+  assert.doesNotMatch(panel.slice(0, panel.indexOf('</div>', panel.indexOf("<h4>Notes</h4>"))), /setLocation\(plannerPath\('\/notes'\)\)/);
+});
+
+test('user-facing copy says Buhay.OS, while internal daybook storage keys are preserved', () => {
+  for (const file of ['./App.tsx', './CalendarPage.tsx', './pages/ReleaseOnePage.tsx', './pages/ReleaseTwoPage.tsx', './pages/ProjectsPage.tsx']) {
+    const source = readFileSync(new URL(file, import.meta.url), 'utf8');
+    assert.doesNotMatch(source, /Daybook/, `${file} still shows the old Daybook name`);
+  }
+  const cache = readFileSync(new URL('./planner-cache.ts', import.meta.url), 'utf8');
+  assert.match(cache, /'daybook\.encrypted-cache\.v1'/);
+  assert.match(cache, /`daybook\.account-cache\.v2:/);
+});
+
+test('Week view tasks can be edited as well as completed', () => {
+  const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8');
+  const start = app.indexOf('data-testid="grid-week"');
+  const week = app.slice(start, app.indexOf('className="surface week-notes"', start));
+  assert.ok(week.length > 0, 'Week grid markup not found');
+  assert.match(week, /className="day-task-check" aria-pressed=\{done\}/);
+  assert.match(week, /onClick=\{\(\)=>toggleTask\(task\.id,task\.occurrenceDate,task\.seriesTaskId,task\.completed\)\}/);
+  assert.match(week, /className="day-task-open" aria-label=\{`Edit \$\{task\.title\}`\} onClick=\{\(\)=>openTask\(task\.dueDate,task\)\}/);
+  assert.doesNotMatch(week, /role="button"/);
 });
