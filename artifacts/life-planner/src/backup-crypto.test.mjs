@@ -85,3 +85,16 @@ test('a legacy plaintext JSON backup is refused, never silently imported', async
   assert.throws(() => inspectBackupFile(legacy), (e) => e instanceof BackupError && e.code === 'legacy-plaintext');
   await rejects(decryptBackup(legacy, PASSWORD), 'legacy-plaintext');
 });
+
+test('a journal travels inside an encrypted backup and comes back identical, with no entry text in the file', async () => {
+  const { createJournalCollection, createJournalEntry } = await import('@workspace/planner-contract/journal');
+  const ids = (() => { let n = 0; return () => `j-${++n}`; })();
+  const now = '2026-10-26T10:00:00.000Z';
+  const { data: started, collection } = createJournalCollection({ tasks: [], notes: [], settings: {} }, { startLocalDate: '2026-01-01', timeZone: 'Asia/Manila' }, now, ids);
+  const { data } = createJournalEntry(started, { collectionInstanceId: collection.id, localDate: '2026-02-11', body: 'JOURNAL-SECRET-WORDS', mood: { label: 'Calm' } }, now, ids);
+  const plaintext = JSON.stringify(data);
+  const file = await encryptBackup(plaintext, 'correct horse battery staple');
+  assert.equal(file.includes('JOURNAL-SECRET-WORDS'), false);
+  assert.equal(file.includes('2026-02-11'), false);
+  assert.equal(await decryptBackup(file, 'correct horse battery staple'), plaintext);
+});
