@@ -1,0 +1,551 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: planner
+    description: Encrypted planner synchronization and recovery
+  - name: calendar
+    description: Per-user Google Calendar connection and event synchronization
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /planner/state:
+    get:
+      operationId: getPlannerState
+      tags: [planner]
+      summary: Get the signed-in user's encrypted planner snapshot
+      responses:
+        "200":
+          description: Current encrypted planner snapshot, if one exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannerState"
+        "401":
+          description: Sign-in is required
+    put:
+      operationId: savePlannerState
+      tags: [planner]
+      summary: Save a new encrypted planner snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlannerSyncInput"
+      responses:
+        "200":
+          description: The new snapshot revision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannerSyncResult"
+        "401":
+          description: Sign-in is required
+        "409":
+          description: The planner changed on another device
+  /planner/versions:
+    get:
+      operationId: listPlannerVersions
+      tags: [planner]
+      summary: List recoverable encrypted planner revisions
+      responses:
+        "200":
+          description: Available revisions, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlannerVersion"
+        "401":
+          description: Sign-in is required
+  /planner/versions/{revision}:
+    get:
+      operationId: getPlannerVersion
+      tags: [planner]
+      summary: Retrieve one encrypted planner revision
+      parameters:
+        - name: revision
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Encrypted planner revision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannerSyncResult"
+        "401":
+          description: Sign-in is required
+        "404":
+          description: Revision was not found
+  /planner/calendar/google/connection:
+    get:
+      operationId: getGoogleCalendarConnection
+      tags: [calendar]
+      summary: Check whether the signed-in user connected Google Calendar
+      responses:
+        "200":
+          description: Connection status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarConnection"
+        "401":
+          description: Sign-in is required
+    delete:
+      operationId: disconnectGoogleCalendar
+      tags: [calendar]
+      summary: Remove the signed-in user's Google Calendar connection
+      responses:
+        "204":
+          description: Connection removed
+        "401":
+          description: Sign-in is required
+  /planner/calendar/google/calendars:
+    get:
+      operationId: listGoogleCalendars
+      tags: [calendar]
+      summary: List available Google calendars and the signed-in user's selection
+      responses:
+        "200":
+          description: Available calendars and selected calendar IDs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarList"
+        "401":
+          description: Sign-in is required or Google is not connected
+        "403":
+          description: Google Calendar access must be updated to list calendars
+        "502":
+          description: Google Calendar could not load calendars
+  /planner/calendar/google/calendars/selection:
+    put:
+      operationId: updateGoogleCalendarSelection
+      tags: [calendar]
+      summary: Save the signed-in user's selected Google calendars
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleCalendarSelectionInput"
+      responses:
+        "200":
+          description: Saved calendar selection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarSelection"
+        "401":
+          description: Sign-in is required or Google is not connected
+        "400":
+          description: One or more calendar IDs are invalid or unavailable
+        "403":
+          description: Google Calendar access must be updated to list calendars
+        "502":
+          description: Google Calendar could not validate calendars
+  /planner/calendar/google/authorize:
+    get:
+      operationId: authorizeGoogleCalendar
+      tags: [calendar]
+      summary: Begin the signed-in user's Google OAuth authorization
+      responses:
+        "302":
+          description: Redirects to Google consent
+        "401":
+          description: Sign-in is required
+        "503":
+          description: Google Calendar is not configured
+  /planner/calendar/google/callback:
+    get:
+      operationId: googleCalendarCallback
+      tags: [calendar]
+      summary: Complete Google OAuth authorization
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirects back to Daybook
+        "400":
+          description: Invalid OAuth response
+  /planner/calendar/events:
+    get:
+      operationId: listGoogleCalendarEvents
+      tags: [calendar]
+      summary: List the signed-in user's Google Calendar events
+      parameters:
+        - name: timeMin
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: timeMax
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Events in the requested time range
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CalendarEvent"
+        "401":
+          description: Sign-in is required or Google is not connected
+        "400":
+          description: The requested time range is invalid
+        "502":
+          description: Google Calendar could not load events
+    post:
+      operationId: createGoogleCalendarEvent
+      tags: [calendar]
+      summary: Create a Google Calendar event for the signed-in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEventInput"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEvent"
+        "401":
+          description: Sign-in is required or Google is not connected
+        "400":
+          description: The event is invalid
+        "403":
+          description: The selected calendar is not writable or Google Calendar access must be updated
+        "502":
+          description: Google Calendar could not create the event
+  /planner/calendar/events/{calendarId}/{eventId}:
+    patch:
+      operationId: updateGoogleCalendarEvent
+      tags: [calendar]
+      summary: Update a Google Calendar event if it has not changed elsewhere
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: calendarId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEventInput"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEvent"
+        "409":
+          description: Event changed in Google Calendar; current event is returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEventConflict"
+        "401":
+          description: Sign-in is required or Google is not connected
+        "400":
+          description: The update or event version is invalid
+        "404":
+          description: The event was not found
+        "502":
+          description: Google Calendar could not update the event
+    delete:
+      operationId: deleteGoogleCalendarEvent
+      tags: [calendar]
+      summary: Delete a Google Calendar event if it has not changed elsewhere
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: calendarId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Event deleted
+        "409":
+          description: Event changed in Google Calendar before deletion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEventConflict"
+        "401":
+          description: Sign-in is required or Google is not connected
+        "400":
+          description: The event ID or event version is invalid
+        "404":
+          description: The event was not found
+        "502":
+          description: Google Calendar could not delete the event
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    EncryptedPlannerPayload:
+      type: object
+      required: [cryptoVersion, kdf, salt, iv, ciphertext]
+      properties:
+        cryptoVersion:
+          type: integer
+          enum: [1]
+        kdf:
+          type: string
+          enum: [PBKDF2-SHA256]
+        salt:
+          type: string
+          minLength: 32
+        iv:
+          type: string
+          minLength: 16
+        ciphertext:
+          type: string
+          minLength: 1
+    PlannerSyncInput:
+      type: object
+      required: [expectedRevision, payload]
+      properties:
+        expectedRevision:
+          type: integer
+          minimum: 0
+        payload:
+          $ref: "#/components/schemas/EncryptedPlannerPayload"
+    PlannerState:
+      type: object
+      required: [exists, revision, updatedAt, payload]
+      properties:
+        exists:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 0
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+        payload:
+          oneOf:
+            - $ref: "#/components/schemas/EncryptedPlannerPayload"
+            - type: "null"
+    PlannerSyncResult:
+      type: object
+      required: [revision, updatedAt, payload]
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+        payload:
+          $ref: "#/components/schemas/EncryptedPlannerPayload"
+    PlannerVersion:
+      type: object
+      required: [revision, updatedAt]
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+    CalendarConnection:
+      type: object
+      required: [connected, reauthorizationRequired]
+      properties:
+        connected:
+          type: boolean
+        reauthorizationRequired:
+          type: boolean
+    GoogleCalendar:
+      type: object
+      required: [id, summary, primary, accessRole]
+      properties:
+        id:
+          type: string
+        summary:
+          type: string
+        primary:
+          type: boolean
+        accessRole:
+          type: string
+    GoogleCalendarSelection:
+      type: object
+      required: [selectedCalendarIds]
+      properties:
+        selectedCalendarIds:
+          type: array
+          items:
+            type: string
+    GoogleCalendarList:
+      type: object
+      required: [calendars, selectedCalendarIds]
+      properties:
+        calendars:
+          type: array
+          items:
+            $ref: "#/components/schemas/GoogleCalendar"
+        selectedCalendarIds:
+          type: array
+          items:
+            type: string
+    GoogleCalendarSelectionInput:
+      type: object
+      required: [calendarIds]
+      properties:
+        calendarIds:
+          type: array
+          items:
+            type: string
+    CalendarDateTime:
+      type: object
+      required: [dateTime, date, timeZone]
+      properties:
+        dateTime:
+          type: ["string", "null"]
+          format: date-time
+        date:
+          type: ["string", "null"]
+          format: date
+        timeZone:
+          type: ["string", "null"]
+    CalendarEvent:
+      type: object
+      required: [id, calendarId, accessRole, title, description, location, start, end, etag, updatedAt, htmlLink, conferenceUrl]
+      properties:
+        id:
+          type: string
+        calendarId:
+          type: string
+        accessRole:
+          type: string
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        start:
+          $ref: "#/components/schemas/CalendarDateTime"
+        end:
+          $ref: "#/components/schemas/CalendarDateTime"
+        etag:
+          type: string
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+        htmlLink:
+          type: ["string", "null"]
+          format: uri
+        conferenceUrl:
+          type: ["string", "null"]
+          format: uri
+    CalendarEventInput:
+      type: object
+      required: [title, start, end]
+      properties:
+        calendarId:
+          type: string
+          minLength: 1
+          description: Optional destination calendar. If omitted, the writable primary calendar is preferred.
+        idempotencyKey:
+          type: string
+          minLength: 16
+          maxLength: 128
+          description: Optional stable key that lets a retry recover the event created by the original request.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 1024
+        description:
+          type: ["string", "null"]
+          maxLength: 8192
+        location:
+          type: ["string", "null"]
+          maxLength: 2048
+        start:
+          $ref: "#/components/schemas/CalendarDateTime"
+        end:
+          $ref: "#/components/schemas/CalendarDateTime"
+    CalendarEventConflict:
+      type: object
+      required: [error, current]
+      properties:
+        error:
+          type: string
+        current:
+          oneOf:
+            - $ref: "#/components/schemas/CalendarEvent"
+            - type: "null"
+

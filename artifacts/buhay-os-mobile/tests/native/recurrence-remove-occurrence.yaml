@@ -1,0 +1,29 @@
+appId: ${APP_ID}
+---
+- launchApp
+- openLink:
+    link: "${APP_URL}"
+- assertVisible: "Edit task: Native daily series"
+- tapOn: "Edit task: Native daily series"
+- scrollUntilVisible:
+    element:
+      id: capture-delete
+    direction: DOWN
+- tapOn:
+    id: capture-delete
+- assertVisible: "Remove this occurrence?"
+- assertVisible: "Only this date will be removed. Other dates in the series will stay."
+- tapOn: "Cancel"
+- assertVisible: "Edit task: Native daily series"
+- tapOn: "Edit task: Native daily series"
+- scrollUntilVisible:
+    element:
+      id: capture-delete
+    direction: DOWN
+- tapOn:
+    id: capture-delete
+- assertVisible: "Remove this occurrence?"
+- tapOn: "Remove occurrence"
+- assertVisible: "Nothing scheduled here"
+- tapOn: "Next week"
+- assertVisible: "Edit task: Native daily series"
