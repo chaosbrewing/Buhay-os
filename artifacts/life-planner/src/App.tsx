@@ -41,6 +41,9 @@ import type { PlannerRecordRef } from '@workspace/planner-contract/release2';
 import type { ReleaseTwoSection } from '@/pages/ReleaseTwoPage';
 import ReleaseTwoPage from '@/pages/ReleaseTwoPage';
 import { parsePlannerBackup, serializePlannerBackup } from './planner-snapshot';
+import { keepDeletedMemories } from './backup-restore';
+import { BackupError, BACKUP_ERROR_MESSAGES, decryptBackup, encryptBackup, inspectBackupFile } from './backup-crypto';
+import { BackupPasswordDialog } from './BackupPasswordDialog';
 import { localDateKey, offsetLocalDate, shiftLocalDate, localMonday } from './local-date';
 import { decryptSnapshot } from './planner-crypto';
 import { usePlannerVault } from './usePlannerVault';
@@ -166,6 +169,9 @@ function PlannerApp(){
   const [backupCandidate,setBackupCandidate]=useState<Data|null>(null);
   const [importBusy,setImportBusy]=useState(false);
   const [importError,setImportError]=useState('');
+  const [backupDialog,setBackupDialog]=useState<{mode:'export';name:string;plain:string}|{mode:'import';text:string}|null>(null);
+  const [backupPwBusy,setBackupPwBusy]=useState(false);
+  const [backupPwError,setBackupPwError]=useState('');
   const vault=usePlannerVault(data,setData,()=>{setData(starter());setModal(null);setSearch('');setBackupCandidate(null);clearCalendarDraft();setLocation(plannerPath('/'));});
   const {ownerId,plannerState,saveMutation,passphrase,setPassphrase,passphraseAgain,setPassphraseAgain,
     passphraseError,unlocked,online,syncStatus,unlockPlanner,lockPlanner,syncNow,cryptoKeyRef,readyRef}=vault;
@@ -422,13 +428,30 @@ function PlannerApp(){
   const resetDashboardWidgets=()=>setData(current=>{const {todayWidgetOrder:_ignored,...settings}=current.settings;return {...current,settings};});
   const setTaskCalendarRequestKey=(taskId:string,calendarEventRequestKey:string)=>setData(current=>({...current,tasks:current.tasks.map(task=>task.id===taskId?{...task,calendarEventRequestKey}:task)}));
   const setTaskCalendarEvent=(taskId:string,calendarEventRef:NonNullable<Task['calendarEventRef']>)=>setData(current=>({...current,tasks:current.tasks.map(task=>{if(task.id!==taskId)return task;const {calendarEventRequestKey:_pending,...saved}=task;return {...saved,calendarEventRef};})}));
-  const exportBackup=()=>{download(`buhay-os-backup-${today()}.json`,serializePlannerBackup(data),'application/json');setToast('Your backup is ready');};
+  const exportBackup=()=>{setBackupPwError('');setBackupDialog({mode:'export',name:`buhay-os-backup-${today()}.buhaybackup`,plain:serializePlannerBackup(data)});};
+  const closeBackupDialog=()=>{if(backupPwBusy)return;setBackupDialog(null);setBackupPwError('');};
+  const submitBackupPassword=async(password:string)=>{
+    const dialog=backupDialog;if(!dialog||backupPwBusy)return;
+    const key=cryptoKeyRef.current;
+    setBackupPwBusy(true);setBackupPwError('');
+    try{
+      if(dialog.mode==='export'){
+        download(dialog.name,await encryptBackup(dialog.plain,password),'application/json');
+        setBackupDialog(null);setToast('Your encrypted backup is ready. Keep the password safe: it cannot be recovered.');
+      }else{
+        const parsed=parsePlannerBackup(await decryptBackup(dialog.text,password));
+        if(readyRef.current&&key===cryptoKeyRef.current){setImportError('');setBackupCandidate(parsed);setBackupDialog(null);}
+      }
+    }catch(error){
+      setBackupPwError(error instanceof BackupError?error.message:BACKUP_ERROR_MESSAGES.malformed);
+    }finally{setBackupPwBusy(false);}
+  };
   const exportMarkdown=()=>{const md=data.notes.map(n=>`# ${n.title}\n\n_${dateLabel(n.date)}${n.tags.length?` · ${n.tags.join(', ')}`:''}_\n\n${n.content}`).join('\n\n---\n\n');download(`buhay-os-notes-${today()}.md`,md,'text/markdown');setToast('Notes exported as Markdown');};
   const importBackup=async(file?:File)=>{
     if(!file)return;
     const key=cryptoKeyRef.current;
-    try{const parsed=parsePlannerBackup(await file.text());if(readyRef.current&&key===cryptoKeyRef.current){setImportError('');setBackupCandidate(parsed);}}
-    catch{setToast('That file could not be read as a Buhay.OS backup');}
+    try{const text=await file.text();inspectBackupFile(text);if(readyRef.current&&key===cryptoKeyRef.current){setBackupPwError('');setBackupDialog({mode:'import',text});}}
+    catch(error){setToast(error instanceof BackupError?error.message:BACKUP_ERROR_MESSAGES.malformed);}
     if(importRef.current)importRef.current.value='';
   };
   const confirmImport=async()=>{
@@ -438,7 +461,7 @@ function PlannerApp(){
     try{
       await vault.checkpointBeforeReplace();
       if(!readyRef.current||key!==cryptoKeyRef.current)return;
-      setData(backupCandidate);setBackupCandidate(null);setToast('Backup restored. Your previous planner is recoverable in Settings.');
+      setData(keepDeletedMemories(backupCandidate,data));setBackupCandidate(null);setToast('Backup restored. Your previous planner is recoverable in Settings.');
     }catch(error){setImportError(error instanceof Error?error.message:'Could not save a recovery copy. Nothing was replaced.');}
     finally{setImportBusy(false);}
   };
@@ -562,6 +585,7 @@ function PlannerApp(){
        {modal&&<EditDialog key={`${modal.kind}-${modal.item?.id??'new'}-${modal.projectId??''}-${modal.parentTaskId??''}`} modal={modal} projects={data.projects??[]} preferredCalendarId={data.settings.preferredCalendarId} onPreferredCalendarChange={preferredCalendarId=>changeSettings({preferredCalendarId})} notificationPermission={notificationPermission} onRequestNotificationPermission={requestNotificationPermission} onTaskCalendarRequestKey={setTaskCalendarRequestKey} onTaskCalendarLinked={setTaskCalendarEvent} onClose={()=>setModal(null)} onTask={saveTask} onNote={saveNote} onDeleteTask={deleteTask} onDeleteNote={deleteNote}/>}
       {memories.dialog&&<MemoryDialog key={memories.dialog.mode==='edit'?memories.dialog.memory.id:'new-memory'} dialog={memories.dialog} onSubmit={memories.submit} onClose={memories.closeDialog}/>}
       {toast&&<div className="toast-msg" role="status" data-testid="status-toast">{toast}</div>}
+      <BackupPasswordDialog mode={backupDialog?.mode??null} busy={backupPwBusy} error={backupPwError} onSubmit={pw=>void submitBackupPassword(pw)} onCancel={closeBackupDialog}/>
       <BackupImportDialog candidate={backupCandidate} current={data} busy={importBusy} error={importError}
         onCancel={()=>setBackupCandidate(null)} onConfirm={()=>void confirmImport()}/>
     </div>
@@ -603,7 +627,7 @@ function PlannerApp(){
     <section className="surface settings-card"><h2>A softer or deeper page</h2><p>Choose the color mood that feels right for today.</p><div style={{display:'flex',gap:9,marginBottom:20}}><button className={`btn ${data.settings.theme==='light'?'btn-primary':'btn-quiet'}`} onClick={()=>changeSettings({theme:'light'})} data-testid="button-theme-light"><Sun size={15}/> Light</button><button className={`btn ${data.settings.theme==='dark'?'btn-primary':'btn-quiet'}`} onClick={()=>changeSettings({theme:'dark'})} data-testid="button-theme-dark"><Moon size={15}/> Dark</button></div><label className="field-label" htmlFor="accentHex">Accent color</label><div className="accent-row"><input type="color" aria-label="Pick accent color" value={data.settings.accentHex} onChange={e=>changeSettings({accentHex:e.target.value})} data-testid="input-accent-picker"/><input id="accentHex" className="field" value={data.settings.accentHex} pattern="^#[0-9A-Fa-f]{6}$" onChange={e=>{const v=e.target.value;if(/^#[0-9A-Fa-f]{6}$/.test(v))changeSettings({accentHex:v});}} data-testid="input-accent-hex"/></div></section>
     <section className="surface settings-card"><h2>Reminder previews</h2><p>Choose whether local task notifications show task titles. Hidden titles use a generic alert instead. This preference stays inside your encrypted planner.</p><div className="settings-actions"><button type="button" className={`btn ${data.settings.showTaskTitlesInReminders!==false?'btn-primary':'btn-quiet'}`} aria-pressed={data.settings.showTaskTitlesInReminders!==false} onClick={()=>changeSettings({showTaskTitlesInReminders:true})} data-testid="button-show-reminder-titles">Show task titles</button><button type="button" className={`btn ${data.settings.showTaskTitlesInReminders===false?'btn-primary':'btn-quiet'}`} aria-pressed={data.settings.showTaskTitlesInReminders===false} onClick={()=>changeSettings({showTaskTitlesInReminders:false})} data-testid="button-hide-reminder-titles">Hide task titles</button></div></section>
     <section className="surface settings-card"><h2>Your data belongs to you</h2><p>Buhay.OS syncs an encrypted snapshot to your account. The server stores ciphertext only; your offline cache remains on this device.</p><div className="settings-actions"><button className="btn btn-quiet" onClick={syncNow} data-testid="button-sync-now"><RefreshCw size={15}/> Sync now</button><button className="btn btn-quiet" onClick={()=>setLocation('/planner/history')} data-testid="button-open-history"><History size={15}/> Version history</button></div><div className="security-copy"><strong>Your encryption passphrase is separate from your account password.</strong> It cannot be recovered. Never forget or share it.</div></section>
-    <section className="surface settings-card"><h2>Keep a portable copy</h2><p>Download or restore a readable backup on this device. This export is not encrypted, so keep it somewhere private.</p><div className="settings-actions"><button className="btn btn-quiet" onClick={exportBackup} data-testid="button-export-backup"><Download size={15}/> Export backup</button><button className="btn btn-quiet" onClick={()=>importRef.current?.click()} data-testid="button-import-backup"><Upload size={15}/> Import backup</button><input ref={importRef} type="file" accept="application/json,.json" hidden onChange={e=>void importBackup(e.target.files?.[0])} data-testid="input-import-backup"/></div></section>
+    <section className="surface settings-card"><h2>Keep a portable copy</h2><p>Download or restore a password-protected backup. The file is encrypted with a password you choose, which is not saved anywhere and cannot be recovered.</p><div className="settings-actions"><button className="btn btn-quiet" onClick={exportBackup} data-testid="button-export-backup"><Download size={15}/> Export backup</button><button className="btn btn-quiet" onClick={()=>importRef.current?.click()} data-testid="button-import-backup"><Upload size={15}/> Import backup</button><input ref={importRef} type="file" accept=".buhaybackup,application/json,.json" hidden onChange={e=>void importBackup(e.target.files?.[0])} data-testid="input-import-backup"/></div></section>
     <section className="surface settings-card"><h2>Carry your notes with you</h2><p>Export every note as a simple Markdown file, ready to keep or move elsewhere.</p><button className="btn btn-quiet" onClick={exportMarkdown} data-testid="button-settings-export-notes"><FileText size={15}/> Export notes as Markdown</button></section>
     <section className="surface settings-card"><h2>Start with a fresh page</h2><p>Restore the original sample tasks and notes. This replaces the current data saved on this device.</p>{confirmReset?<div className="settings-actions"><button className="btn btn-danger" onClick={reset} data-testid="button-confirm-reset"><RotateCcw size={15}/> Yes, reset my data</button><button className="btn btn-quiet" onClick={()=>setConfirmReset(false)} data-testid="button-cancel-reset">Keep my data</button></div>:<button className="btn btn-quiet" onClick={()=>setConfirmReset(true)} data-testid="button-reset-data"><RotateCcw size={15}/> Reset sample data</button>}</section>
   </div></>;
@@ -618,9 +642,10 @@ function PlannerApp(){
     {passphraseError&&<p role="alert">{passphraseError}</p>}
     <div className="settings-actions">
       <button className="btn btn-quiet" disabled={vault.busy} onClick={()=>void lockPlanner()}>Stay locked</button>
-      <button className="btn btn-quiet" onClick={()=>{if(window.confirm('Download your offline version as an UNENCRYPTED JSON file? Keep it somewhere private.'))download(`buhay-os-offline-recovery-${today()}.json`,serializePlannerBackup(vault.recovery!.local),'application/json');}}>Download offline backup</button>
+      <button className="btn btn-quiet" onClick={()=>{setBackupPwError('');setBackupDialog({mode:'export',name:`buhay-os-offline-recovery-${today()}.buhaybackup`,plain:serializePlannerBackup(vault.recovery!.local)});}}>Download offline backup</button>
       <button className="btn btn-primary" disabled={vault.busy} data-testid="button-accept-offline-recovery" onClick={()=>void vault.acceptRecovery()}>Keep both and continue</button>
     </div>
+    <BackupPasswordDialog mode={backupDialog?.mode==='export'?'export':null} busy={backupPwBusy} error={backupPwError} onSubmit={pw=>void submitBackupPassword(pw)} onCancel={closeBackupDialog}/>
   </section></main>;
   if(!unlocked){
     const localExists=vault.hasCache;
