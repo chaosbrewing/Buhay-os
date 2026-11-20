@@ -41,7 +41,7 @@ import type { PlannerRecordRef } from '@workspace/planner-contract/release2';
 import type { ReleaseTwoSection } from '@/pages/ReleaseTwoPage';
 import ReleaseTwoPage from '@/pages/ReleaseTwoPage';
 import { parsePlannerBackup, serializePlannerBackup } from './planner-snapshot';
-import { keepDeletedMemories } from './backup-restore';
+import { keepDeletedRecords } from './backup-restore';
 import { BackupError, BACKUP_ERROR_MESSAGES, decryptBackup, encryptBackup, inspectBackupFile } from './backup-crypto';
 import { BackupPasswordDialog } from './BackupPasswordDialog';
 import { localDateKey, offsetLocalDate, shiftLocalDate, localMonday } from './local-date';
@@ -461,7 +461,7 @@ function PlannerApp(){
     try{
       await vault.checkpointBeforeReplace();
       if(!readyRef.current||key!==cryptoKeyRef.current)return;
-      setData(keepDeletedMemories(backupCandidate,data));setBackupCandidate(null);setToast('Backup restored. Your previous planner is recoverable in Settings.');
+      setData(keepDeletedRecords(backupCandidate,data));setBackupCandidate(null);setToast('Backup restored. Your previous planner is recoverable in Settings.');
     }catch(error){setImportError(error instanceof Error?error.message:'Could not save a recovery copy. Nothing was replaced.');}
     finally{setImportBusy(false);}
   };

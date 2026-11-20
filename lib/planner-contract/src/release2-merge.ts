@@ -14,10 +14,14 @@ import {
 import {
   hasBakasData,
   mergeMemoryCollections,
-  normalizeBakasData,
-  type BakasPlannerData,
 } from '@workspace/planner-contract/bakas';
 import { hasUgnayData, mergeUgnayCollections } from '@workspace/planner-contract/ugnay';
+import {
+  hasJournalData,
+  mergeJournalCollections,
+  normalizeJournalData,
+  type JournalPlannerData,
+} from '@workspace/planner-contract/journal';
 
 type ReleaseTwoCollectionKey = 'goals' | 'milestones' | 'lifeAreas' | 'links' | 'reviews';
 type ReleaseTwoRecord = PlannerGoal | PlannerMilestone | PlannerLifeArea | PlannerRecordLink | PlannerLifeReview;
@@ -163,9 +167,18 @@ function mergeOptionalCollections(
   // UGNAY's grants, drafts and audit log, and BAKAS's memories, would otherwise
   // be taken whole from one copy. Only runs when some copy has them, so older
   // snapshots merge exactly as before.
-  const copies = groups.flat() as BakasPlannerData[];
-  if (copies.some((copy) => hasUgnayData(copy as Record<string, unknown>) || hasBakasData(copy as Record<string, unknown>))) {
-    return normalizeBakasData({ ...result, ...mergeUgnayCollections(copies), ...mergeMemoryCollections(copies) });
+  // The journal works the same way: absent until used, merged per entry.
+  const copies = groups.flat() as JournalPlannerData[];
+  if (copies.some((copy) => {
+    const record = copy as Record<string, unknown>;
+    return hasUgnayData(record) || hasBakasData(record) || hasJournalData(record);
+  })) {
+    return normalizeJournalData({
+      ...result,
+      ...mergeUgnayCollections(copies),
+      ...mergeMemoryCollections(copies),
+      ...mergeJournalCollections(copies),
+    });
   }
   return normalizeReleaseTwoData(result);
 }

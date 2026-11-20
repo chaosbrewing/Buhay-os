@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { keepDeletedMemories } from './backup-restore.ts';
+import { keepDeletedMemories, keepDeletedRecords } from './backup-restore.ts';
 
 const base = { tasks: [], notes: [], settings: { theme: 'light', accentHex: '#3b765e' } };
 const T = '2026-11-01T00:00:00.000Z';
 const live = (id) => ({ id, text: `text ${id}`, kind: 'fact', verification: 'user-confirmed', sensitivity: 'private', source: { type: 'manual' }, createdAt: T, updatedAt: T });
+const page = (id) => ({ id, collectionInstanceId: 'c1', localDate: '2026-02-11', body: `page ${id}`, modality: 'digital', createdAt: T, updatedAt: T });
 
 test('restoring an old backup does not bring back a memory deleted since', () => {
   const restored = { ...base, memories: [live('a'), live('b')] };
@@ -21,4 +22,26 @@ test('deletions missing from the backup are still recorded; no deletions leaves 
   assert.deepEqual(out.memories.map((m) => m.id).sort(), ['b', 'z']);
   assert.equal(keepDeletedMemories(restored, { ...base, memories: [live('q')] }), restored);
   assert.equal(keepDeletedMemories(restored, base), restored);
+});
+
+test('restoring an old backup does not bring back a journal entry deleted since', () => {
+  const restored = { ...base, journalEntries: [page('a'), page('b')] };
+  const current = { ...base, journalEntries: [{ id: 'a', deletedAt: T }, page('b')] };
+  const out = keepDeletedRecords(restored, current);
+  assert.deepEqual(out.journalEntries.find((e) => e.id === 'a'), { id: 'a', deletedAt: T });
+  assert.equal(out.journalEntries.find((e) => e.id === 'b').body, 'page b');
+  assert.ok(!JSON.stringify(out).includes('page a'));
+});
+
+test('one restore keeps both deleted memories and deleted journal entries', () => {
+  const restored = { ...base, memories: [live('m1')], journalEntries: [page('j1')] };
+  const current = { ...base, memories: [{ id: 'm1', deletedAt: T }], journalEntries: [{ id: 'j1', deletedAt: T }] };
+  const out = keepDeletedRecords(restored, current);
+  assert.deepEqual(out.memories, [{ id: 'm1', deletedAt: T }]);
+  assert.deepEqual(out.journalEntries, [{ id: 'j1', deletedAt: T }]);
+});
+
+test('a planner with no journal or memories is returned untouched', () => {
+  const restored = { ...base };
+  assert.equal(keepDeletedRecords(restored, base), restored);
 });
