@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Link } from 'wouter';
-import { BookOpen, Brain, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
+import { BookMarked, BookOpen, Brain, CalendarDays, CalendarRange, ChevronDown, CircleHelp, Flag, Flower2, FolderKanban, GanttChart, History, Inbox, LayoutTemplate, NotebookPen, PenLine, Repeat2, Search, Settings as SettingsIcon, Sparkles, UserRound, X } from 'lucide-react';
 
 type Icon = ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
 export type NavEntry = { href: string; label: string; icon: Icon };
@@ -17,7 +17,7 @@ export function buildNavGroups(enabled: Set<string>) {
   const timeline = [entry('/timeline', 'Timeline', GanttChart)].filter(on);
   const groups: NavGroup[] = [
     { id: 'daily', label: 'Daily planning', items: [entry('/', 'Today', Flower2), entry('/week', 'Week', CalendarRange), entry('/calendar', 'Calendar', CalendarDays), ...timeline, entry('/inbox', 'Inbox', Inbox)] },
-    { id: 'organize', label: 'Organize', items: [entry('/projects', 'Projects', FolderKanban), entry('/notes', 'Notes', NotebookPen), entry('/templates', 'Templates', LayoutTemplate)] },
+    { id: 'organize', label: 'Organize', items: [entry('/projects', 'Projects', FolderKanban), entry('/notes', 'Notes', NotebookPen), ...[entry('/journal', 'Journal', BookMarked)].filter(on), entry('/templates', 'Templates', LayoutTemplate)] },
     { id: 'rhythms', label: 'Habits & routines', items: [entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2)] },
   ];
   if (life.length) groups.push({ id: 'life', label: 'Life planning', items: life });
@@ -29,7 +29,7 @@ export function buildNavGroups(enabled: Set<string>) {
       entry('/habits', 'Habits', Sparkles), entry('/routines', 'Routines', Repeat2), entry('/templates', 'Templates', LayoutTemplate),
       ...[entry('/goals', 'Goals', Flag), entry('/life-areas', 'Life Areas', CircleHelp), entry('/search', 'Search', Search)].filter(on),
     ] },
-    capture: { label: 'Capture', eyebrow: "Keep what's on your mind", icon: PenLine, items: [entry('/inbox', 'Inbox', Inbox), entry('/notes', 'Notes', NotebookPen)] },
+    capture: { label: 'Capture', eyebrow: "Keep what's on your mind", icon: PenLine, items: [entry('/inbox', 'Inbox', Inbox), entry('/notes', 'Notes', NotebookPen), ...[entry('/journal', 'Journal', BookMarked)].filter(on)] },
     review: { label: 'Review', eyebrow: 'Look back', icon: BookOpen, items: [entry('/reviews', 'Reviews', BookOpen), ...timeline].filter(on),
       emptyNote: 'Reviews and Timeline are not switched on yet. Your planner data is unchanged.' },
     you: { label: 'You', eyebrow: 'Your account and privacy', icon: UserRound, items: account },

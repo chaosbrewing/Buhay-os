@@ -15,7 +15,8 @@
     "test:e2e:release-two": "playwright test -c playwright.release-two.config.mjs",
     "test:e2e:habits": "playwright test -c playwright.habits.config.mjs",
     "test:e2e:memory": "playwright test -c playwright.memory.config.mjs",
-    "test:e2e:backup": "playwright test -c playwright.backup.config.mjs"
+    "test:e2e:backup": "playwright test -c playwright.backup.config.mjs",
+    "test:e2e:journal": "playwright test -c playwright.journal.config.mjs"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
