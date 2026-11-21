@@ -5,9 +5,16 @@
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist/public",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": true
   },
   "vars": { "API_ORIGIN": "https://hanay-api.vercel.app" },
-  "routes": [{ "pattern": "hanay.today", "custom_domain": true }]
+  "ratelimits": [
+    { "name": "API_LIMITER", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }
+  ],
+  "routes": [
+    { "pattern": "hanay.today", "custom_domain": true },
+    { "pattern": "www.hanay.today/*", "zone_name": "hanay.today" }
+  ]
 }
