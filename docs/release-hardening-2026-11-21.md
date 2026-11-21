@@ -41,7 +41,7 @@ pnpm audit --prod
 
 ## CI
 
-The workflow is in the repository. A green run on the current commit is the acceptance evidence for audit item 6; its run ID is recorded in the closing report, not here.
+The workflow is in `.github/workflows/ci.yml`. Run 44892101881 on commit `6aa1260` passed both jobs: typecheck, unit tests and production builds, then the browser suites (including accessibility). The dependency audit step is report-only because the zod 3 advisory stays open.
 
 ## Still open
 
