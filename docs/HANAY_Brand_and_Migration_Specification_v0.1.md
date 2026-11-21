@@ -3,7 +3,7 @@
 **Product:** BUHAY.OS is now **HANAY** (visual wordmark: **hanay.**)
 **Workflow:** CHAOS ORIGINS v2.1
 **Date:** 2026-11-21
-**Status:** Decisions approved by the founder. Application-level rename implemented on branch `hanay-rebrand`, local and uncommitted. Repository rename, deployment, external accounts and clearance checks are **not** done and **not** authorised.
+**Status:** Decisions approved by the founder. Application-level rename merged into `main` (PR #2, merge commit `0a36c75`). The GitHub repository was renamed to `hanay` on 2026-11-21 at the founder's request. Deployment, external accounts and clearance checks are **not** done and **not** authorised.
 
 ---
 
@@ -76,7 +76,7 @@ After the change, no file a person reads contains `Buhay.OS` or `BUHAY.OS`. `src
 | `buhay-os-mobile` slug and URL scheme | `app.json` | OAuth return address; must match the Clerk and store configuration. |
 | `@workspace/buhay-os-mobile`, `@workspace/buhay-os-daybook-film`, `/buhay-os-*/` paths, `artifact.toml` ids | workspace and deployment | Deployment routing and build commands. |
 | `buhay-` web notification tag | `web-reminders.ts` | Replacing or clearing already scheduled notifications. |
-| Repository name `Buhay-os` | GitHub | **Not authorised.** |
+| Repository name | GitHub | **Renamed** from `Buhay-os` to `chaosbrewing/hanay` on 2026-11-21 (founder's request). GitHub redirects the old URL. The separate backup repository `Buhay-os-backup` and the local folder name are unchanged. |
 
 `src/rebrand-compat.test.mjs` pins every row that lives in code, including a backup file produced before the rename that must still decrypt.
 
@@ -86,7 +86,7 @@ After the change, no file a person reads contains `Buhay.OS` or `BUHAY.OS`. `src
 2. **Google Cloud:** the OAuth consent screen shows the app name. Changing it may trigger re-verification; do it deliberately.
 3. **Replit and any hosting:** project and deployment titles, preview paths, custom domains.
 4. **Stores:** if the mobile app is ever submitted, the listing name and bundle identifiers.
-5. **Repository:** rename `Buhay-os` to `hanay` only after the above is stable (Stage D). GitHub redirects the old URL.
+5. **Repository:** done. Renamed to `hanay` on 2026-11-21, before items 1 to 4 were settled. Check anything that references the old URL (Replit import, deploy hooks, CI), and rename `Buhay-os-backup` if it should match.
 6. **Clearance:** no domain, trademark, business-name or competing-product check has been run. *Hanay* is a common Filipino word meaning a row or arrangement, so a conflict with other products is plausible. **Do this before any public release.**
 7. **Artwork:** a designer should review and finish the wordmark and mark.
 8. **Mobile wordmark:** `artifacts/buhay-os-mobile/assets/images/wordmark.png` is referenced but is not in the repository, so mobile builds need it supplied (in HANAY artwork).
@@ -112,10 +112,10 @@ After the change, no file a person reads contains `Buhay.OS` or `BUHAY.OS`. `src
 
 ## 8. Rollback
 
-Everything is on branch `hanay-rebrand`, branched from `main`, and nothing is pushed. Abandoning the branch restores BUHAY.OS exactly. The rename changes no stored data, so reverting after release is also safe.
+The application rename is merged into `main` as one merge commit (`0a36c75`), and the `hanay-rebrand` branch has been deleted. Reverting that merge restores the BUHAY.OS name in the app. The rename changes no stored data, so reverting after release is safe. The repository rename is reversed separately in GitHub settings.
 
 ## 9. Deliberately not done
 
-- Repository, package, route, storage-key, backup-format or deployment renames.
+- Package, route, storage-key, backup-format or deployment renames (the repository itself is renamed).
 - The proposed navigation structure (Tasks, Habits, Routines, Memories, Insights as separate entries). It was proposed, not approved, so the current navigation is unchanged.
 - New artwork beyond the wordmark, mark and favicon (app icon sets, store assets, social cards).
