@@ -20,9 +20,11 @@ Follows `release-sentinel-audit-2026-11-21.md` (verdict at the time: NO-GO). Thi
 
 ## Remaining advisories (production dependencies)
 
+After the zod 4 migration all 3 remaining findings are in the Expo mobile build tooling (`artifacts/buhay-os-mobile`), none in the web app or the API.
+
 | Package | Severity | Where | Disposition |
 |---|---|---|---|
-| `zod` 3.25.76 | high | Used by the API and the web app; advisory GHSA-mrhx-c7xc-m3w5 (memory exhaustion validating oversized constrained collections) | **Open, mitigated.** The fix exists only in zod 4.x, a major migration (`@hookform/resolvers` 3.x also targets zod 3). Mitigation: request bodies are bounded by Express's default 100 kB JSON limit and the per-caller rate limits. Recommend migrating to zod 4 as planned work. |
+| `zod` | high | GHSA-mrhx-c7xc-m3w5 (memory exhaustion validating oversized constrained collections). **Fixed for everything that ships:** the web app and API moved to zod 4.6.7 (2026-11-21, with `@hookform/resolvers` 7.0.7). The only remaining copy is zod 3.25.76 inside Expo CLI (mobile build tooling), which pins zod 3. | **Accepted for mobile tooling only.** Not part of the web or API deploy. Revisit when mobile resumes. |
 | `glob`, `minimatch` | moderate | Expo CLI build tooling in the mobile app only | **Accepted.** Not part of the web or API deploy or bundle. A major-version override could break the Expo build; revisit when mobile resumes. |
 
 ## Rate limit design
@@ -54,3 +56,9 @@ The workflow is in `.github/workflows/ci.yml`. Run 44892101881 on commit `6aa126
 - Rollback rehearsal on a staging deployment.
 - Content Security Policy for the web app (the API has a strict one); needs a careful allow-list for Clerk.
 - Uptime and error monitoring; two-factor on Vercel, Cloudflare, GitHub, Clerk; rotating the live secrets.
+
+## zod 4 migration (2026-11-21)
+
+- Bumped the workspace `zod` to ^4.6.7 and `@hookform/resolvers` to ^7.0.7 (7.0.8 was blocked by the one-day minimum release age rule).
+- Code changes were small: the Projects form schema moved to `src/projects-schema.ts` and now has 5 unit tests that run it through the real resolver (valid input, trimming, length limits, status values, and that error messages never repeat what was typed). The generated API schemas needed no changes.
+- Evidence: typecheck clean across the workspace; unit tests contract 130, web 137, mobile 41, API 62; browser suites 66 of 66; API isolation test 13 of 13 on the zod 4 build; production builds pass.
