@@ -5,6 +5,7 @@ import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { buildCorsOptions } from "./lib/corsPolicy";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -33,7 +34,7 @@ app.use(
   }),
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors(buildCorsOptions(process.env.CORS_ALLOWED_ORIGINS)));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
