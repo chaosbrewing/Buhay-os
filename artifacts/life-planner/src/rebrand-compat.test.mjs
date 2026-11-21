@@ -74,7 +74,7 @@ test('the old product name no longer appears in anything a person reads', () => 
     const files = statSync(url).isDirectory() ? [...sources(url.pathname.replace(/^\/([A-Za-z]:)/, '$1'))] : [url.pathname.replace(/^\/([A-Za-z]:)/, '$1')];
     for (const file of files) {
       if (file.endsWith('rebrand-compat.test.mjs')) continue;
-      if (/Buhay\.OS|BUHAY\.OS/.test(readFileSync(file, 'utf8'))) offenders.push(file);
+      if (/Buhay\.OS|BUHAY\.OS|BUHAY<br\s*\/>\s*\.OS/.test(readFileSync(file, 'utf8'))) offenders.push(file);
     }
   }
   assert.deepEqual(offenders, []);
