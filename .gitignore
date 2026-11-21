@@ -50,3 +50,9 @@ Thumbs.db
 .env.e2e
 /artifacts/life-planner/test-results/
 /artifacts/life-planner/playwright-report/
+
+# Local environment secrets
+.env
+.env.local
+.env.*.local
+.neon
