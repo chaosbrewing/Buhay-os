@@ -1,9 +1,9 @@
 ---
-name: Buhay.OS encrypted storage
+name: HANAY encrypted storage
 description: The user's security decision for planner sync and future features.
 ---
 
-Buhay.OS cloud planner snapshots and version history use end-to-end encryption. The separate encryption passphrase cannot be recovered; never send it or the derived key to the server.
+HANAY cloud planner snapshots and version history use end-to-end encryption. The separate encryption passphrase cannot be recovered; never send it or the derived key to the server.
 
 **Why:** The user selected end-to-end encryption and accepted that losing the separate passphrase means losing access to synced data.
 

@@ -1,4 +1,4 @@
-# Buhay.OS
+# HANAY
 
 A private, end-to-end encrypted life planner: daily and weekly plans, projects, Inbox capture, habits, routines, notes, templates and Google Calendar, with encrypted sync between the web app and an Expo companion.
 

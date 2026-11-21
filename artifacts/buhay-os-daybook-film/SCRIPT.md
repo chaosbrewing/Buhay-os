@@ -1,8 +1,8 @@
-# Buhay.OS — Daybook Film
+# HANAY — Daybook Film
 
 ## Treatment
 - **Promise:** A private place where the shape of a day can become clear.
-- **Identity:** The replacement Buhay.OS prismatic orb, standalone wordmark and lockup supplied by the user, paired with Daybook's warm paper, deep botanical green, DM Sans and Fraunces. The orb is the living memory of the film.
+- **Identity:** The replacement HANAY prismatic orb, standalone wordmark and lockup supplied by the user, paired with Daybook's warm paper, deep botanical green, DM Sans and Fraunces. The orb is the living memory of the film.
 - **Hero:** A daybook page—tasks and notes composing themselves around a single, moving day.
 - **Motion:** Orb-to-sun match cuts; close camera moves through paper/UI layers; precise typographic punches and a final radial aperture.
 - **Arc:** A little overwhelm resolves into a deliberate rhythm, then pivots from utility to privacy and returns to the orb.
@@ -22,8 +22,8 @@
 ## Shot-by-shot script
 
 ### Shot 01 / 0.00–4.50s / 4.50s — “TOO MUCH / HELD.”
-**Purpose:** Hook with the familiar feeling of a day that is too full, then make Buhay.OS the vessel for it.
-**Exact content:** 0.00–0.50: “THE DAY” appears in 3.2vmin caps, upper-left. 0.55–1.05: “ALL AT ONCE.” replaces it at 3.2vmin. 1.10–2.40: “Buhay.OS” appears at 2.1vmin beside the official orb. 2.50–3.80: “A little room to begin.” appears at 2.6vmin. Hold until 4.20; no other copy.
+**Purpose:** Hook with the familiar feeling of a day that is too full, then make HANAY the vessel for it.
+**Exact content:** 0.00–0.50: “THE DAY” appears in 3.2vmin caps, upper-left. 0.55–1.05: “ALL AT ONCE.” replaces it at 3.2vmin. 1.10–2.40: “HANAY” appears at 2.1vmin beside the official orb. 2.50–3.80: “A little room to begin.” appears at 2.6vmin. Hold until 4.20; no other copy.
 **Composition:** Deep ink-green field, 6% safe inset. An enormous cropped iridescent orb occupies center-right, about 72% frame height. Paper slivers with tiny task marks orbit in foreground and drift out of focus. Cream type owns upper-left; small wordmark sits below.
 **Artistic idea:** The supplied orb's inner wave catches the paper slivers, as if the day's loose pieces are being gathered into one place.
 **Timed choreography:** 0.00 orb already at 1.3x macro, light turns across it. 0.35, 0.80, 1.25s three ruled paper strips snap into separate orbital tracks with stiff, discrete impacts; the headline swaps on the second snap. 1.65s camera begins pulling back while the orb itself contracts from macro to full 72%-height hero. 2.25s the logo orb takes over the paper orbit center. 2.75s caption unmasks. 3.65s onward the orb pushes toward lens and fills the frame, carrying the scene out.
@@ -64,7 +64,7 @@
 ### Shot 05 / 19.50–24.00s / 4.50s — “PRIVATE BY DESIGN.”
 **Purpose:** Resolve the film honestly on current implemented protections.
 **Exact content:** “PRIVATE BY DESIGN.” at 3.2vmin above logo. Supplied lockup centered, maximum width 57% frame. Fine-print support line: “Encrypted local cache · encrypted version history · manual backup”. Final line: “Your passphrase is yours alone.” at 2.2vmin.
-**Composition:** Near-midnight green-black field, sparse. Official Buhay.OS lockup centered around 50% height; supplied colors remain untouched. Orb is left of wordmark. Three extremely restrained fine orbit rules surround it; each resolves into one layer label: “DEVICE”, “CLOUD”, “VERSIONS”, one at a time, outside logo clear space. Copy sits below lockup.
+**Composition:** Near-midnight green-black field, sparse. Official HANAY lockup centered around 50% height; supplied colors remain untouched. Orb is left of wordmark. Three extremely restrained fine orbit rules surround it; each resolves into one layer label: “DEVICE”, “CLOUD”, “VERSIONS”, one at a time, outside logo clear space. Copy sits below lockup.
 **Artistic idea:** The prior field's cipher facets have become the supplied orb's familiar prismatic surface; instead of becoming another UI, the system contracts into a single official identity.
 **Timed choreography:** 0.00 facets form the orb in center, 1.25x its final size, with no glow. 0.30–1.20s device, cloud, versions orbit labels land sequentially. 1.35s orb rotates its internal image with a gentle scale settles to 1.0. At 1.55s official wordmark unmasks from behind orb; preserve complete brand colors. 2.15s headline fades upward into place. 2.65s support line resolves. 3.25s passphrase line arrives. 3.75s the logo lockup remains crisp while the orbit rules dim. At 4.15s orb expands toward lens, with wordmark separating into light trails, leading directly into Shot 01's orb macro at the 24.00s loop boundary.
 **Transition contract:** The ending deliberately changes from UI detail to minimal identity. The orb remains the persistent carrier into the opener. Compound transition: orbit collapse + orb scale-through + wordmark mask.

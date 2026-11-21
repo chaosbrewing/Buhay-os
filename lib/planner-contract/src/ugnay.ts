@@ -9,7 +9,7 @@ import {
 } from '@workspace/planner-contract/release2';
 
 /**
- * UGNAY: BUHAY.OS's internal coordination layer. It is not a feature users
+ * UGNAY: HANAY's internal coordination layer. It is not a feature users
  * see; it decides which internal capability (memory, money context, advice)
  * may use which planner context, keeps every proposed change as a draft
  * until the user decides, and records what happened.

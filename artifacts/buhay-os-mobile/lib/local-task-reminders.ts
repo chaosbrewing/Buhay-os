@@ -35,7 +35,7 @@ const scheduler = createLocalTaskReminderScheduler({
   scheduleReminder: async (reminder: PlannerReminderInstance) => {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Buhay.OS reminder',
+        title: 'HANAY reminder',
         body: reminder.title,
         data: {
           [REMINDER_MARKER]: true,

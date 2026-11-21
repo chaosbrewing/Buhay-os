@@ -10,7 +10,7 @@ import {
 } from '@workspace/planner-contract/ugnay';
 
 /**
- * BAKAS: what BUHAY.OS remembers about the user, and only what the user has
+ * BAKAS: what HANAY remembers about the user, and only what the user has
  * agreed it may remember. Memories live inside the encrypted planner snapshot
  * as an optional `memories` list, absent until first used. This module only
  * describes, checks and changes that data. It reads and sends nothing.

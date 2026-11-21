@@ -4,7 +4,7 @@
 
 **Problem:** a planner notification can be missed when the app is closed or the phone is locked.
 **Meaning:** let a person choose a concrete time to act on an existing planner item.
-**Users:** existing BUHAY.OS account holders using the companion.
+**Users:** existing HANAY account holders using the companion.
 **Value:** a private, system-managed alarm rather than a timer that depends on an open web page.
 
 The user authorized native work for alarms only and selected **true alarms on iOS 26+ only**,

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Buhay.OS",
+    "name": "HANAY",
     "slug": "buhay-os-mobile",
     "version": "1.0.0",
     "orientation": "default",
@@ -27,7 +27,7 @@
       [
         "react-native-alarm-scheduler",
         {
-          "alarmKitUsageDescription": "Allow Buhay.OS to ring alarms you choose, even when the planner is closed. Alarm labels do not include private planner text.",
+          "alarmKitUsageDescription": "Allow HANAY to ring alarms you choose, even when the planner is closed. Alarm labels do not include private planner text.",
           "addUseExactAlarmPermission": false
         }
       ]

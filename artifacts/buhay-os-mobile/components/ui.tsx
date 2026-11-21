@@ -62,7 +62,7 @@ export function Screen({
             <Image
               source={require('../assets/images/wordmark.png')}
               resizeMode="contain"
-              accessibilityLabel="Buhay.OS"
+              accessibilityLabel="HANAY"
               style={styles.wordmark}
             />
             {headerRight ?? (

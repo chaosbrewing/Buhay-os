@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Buhay.OS — Life Planner"
+title = "HANAY — Life Planner"
 description = "A responsive personal life planner for daily and weekly schedules, tasks, notes, reusable planning templates, and fast search."
 version = "1.0.0"
 id = "artifacts/life-planner"

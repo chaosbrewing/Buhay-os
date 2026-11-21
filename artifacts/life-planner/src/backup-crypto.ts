@@ -1,5 +1,5 @@
 /**
- * Password-protected Buhay.OS backups (format version 1).
+ * Password-protected HANAY backups (format version 1).
  *
  * - Key: PBKDF2-HMAC-SHA256 (Web Crypto; no new dependency) from the backup password and a fresh 16-byte salt.
  * - Cipher: AES-256-GCM with a fresh 12-byte nonce. The whole file header is authenticated as additional data,
@@ -41,9 +41,9 @@ export class BackupError extends Error {
 export const BACKUP_ERROR_MESSAGES: Record<BackupErrorCode, string> = {
   'legacy-plaintext':
     'This is an older, unencrypted backup. It was not imported and nothing was changed. This version only restores password-protected backups.',
-  malformed: 'That file is not a valid Buhay.OS backup. Nothing was changed.',
+  malformed: 'That file is not a valid HANAY backup. Nothing was changed.',
   unsupported: 'That backup was made by a newer or unsupported version. Nothing was changed.',
-  'too-large': 'That file is too large to be a Buhay.OS backup. Nothing was changed.',
+  'too-large': 'That file is too large to be a HANAY backup. Nothing was changed.',
   'weak-password': `Use a backup password of at least ${MIN_BACKUP_PASSWORD_LENGTH} characters.`,
   'wrong-password-or-tampered':
     'The password is wrong, or the file has been changed or damaged. Nothing was changed.',

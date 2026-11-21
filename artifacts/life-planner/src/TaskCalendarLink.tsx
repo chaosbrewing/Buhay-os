@@ -116,7 +116,7 @@ export function TaskCalendarLink({
             ? 'No writable calendars are available. Reconnect or grant Google Calendar write access.'
             : needsReconnectCode(code)
               ? 'Google Calendar access needs renewal. Your task is still here; reconnect, then retry.'
-              : 'The event could not be confirmed. Retry safely; Buhay.OS will recover an event already created.');
+              : 'The event could not be confirmed. Retry safely; HANAY will recover an event already created.');
       },
     });
   };

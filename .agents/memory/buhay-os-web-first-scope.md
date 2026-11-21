@@ -1,13 +1,13 @@
 ---
-name: BUHAY.OS web-first scope
-description: The user's standing release boundary for the BUHAY.OS project.
+name: HANAY web-first scope
+description: The user's standing release boundary for the HANAY project.
 ---
 
 Keep the default delivery target limited to the existing web app. The Expo/React Native iOS/Android companion is on hold except for alarm support, which the user explicitly authorized on 2026-10-16. Do not resume unrelated native development or delete existing companion work.
 
 **Why:** the user asked.
 
-**How to apply:** For BUHAY.OS release work, target the web app only and preserve existing companion work. Native alarm work may proceed: first verify iOS/Android support and report device/build requirements before implementing. This authorization does not include publishing or app-store submission.
+**How to apply:** For HANAY release work, target the web app only and preserve existing companion work. Native alarm work may proceed: first verify iOS/Android support and report device/build requirements before implementing. This authorization does not include publishing or app-store submission.
 
 The user requires alarms that work even when the planner is closed or the phone is locked, not an in-app timer presented as equivalent.
 

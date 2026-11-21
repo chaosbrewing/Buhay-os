@@ -199,7 +199,7 @@ test('header search results open the exact task or note, not just its page', () 
   assert.doesNotMatch(panel.slice(0, panel.indexOf('</div>', panel.indexOf("<h4>Notes</h4>"))), /setLocation\(plannerPath\('\/notes'\)\)/);
 });
 
-test('user-facing copy says Buhay.OS, while internal daybook storage keys are preserved', () => {
+test('user-facing copy says HANAY, while internal daybook storage keys are preserved', () => {
   for (const file of ['./App.tsx', './CalendarPage.tsx', './pages/ReleaseOnePage.tsx', './pages/ReleaseTwoPage.tsx', './pages/ProjectsPage.tsx']) {
     const source = readFileSync(new URL(file, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /Daybook/, `${file} still shows the old Daybook name`);
