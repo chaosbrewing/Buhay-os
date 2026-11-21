@@ -17,10 +17,12 @@
     "test:e2e:memory": "playwright test -c playwright.memory.config.mjs",
     "test:e2e:backup": "playwright test -c playwright.backup.config.mjs",
     "test:e2e:journal": "playwright test -c playwright.journal.config.mjs",
+    "test:e2e:a11y": "playwright test -c playwright.a11y.config.mjs",
     "test:e2e:tuklas": "playwright test -c playwright.tuklas.config.mjs",
     "test:e2e:planner": "playwright test -c playwright.planner.config.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@hookform/resolvers": "^3.10.0",
     "@playwright/test": "^1.64.0",
     "@radix-ui/react-accordion": "^1.2.4",

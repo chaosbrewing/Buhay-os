@@ -169,3 +169,6 @@ overrides:
   # orval pins js-yaml to an exact version older than the CVE fix (>=4.3.2)
   js-yaml: '4.3.2'
 
+  # security advisories in Expo's build tooling (mobile only); patched releases within the same major
+  node-forge: ">=1.4.3"
+  decode-uri-component: ">=0.5.1"
