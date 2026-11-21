@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, unit tests, builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Unit tests
+        run: |
+          pnpm --filter "./lib/planner-contract" test
+          pnpm --filter "./artifacts/life-planner" test
+          pnpm --filter "./artifacts/api-server" test
+          pnpm --filter "./artifacts/buhay-os-mobile" test
+
+      - name: Production builds
+        env:
+          PORT: "5199"
+          BASE_PATH: /
+          NODE_ENV: production
+        run: |
+          pnpm --filter "./artifacts/life-planner" run build
+          pnpm --filter "./artifacts/buhay-os-daybook-film" run build
+          pnpm --filter "./artifacts/mockup-sandbox" run build
+          pnpm --filter "./artifacts/api-server" run build
+          node artifacts/api-server/build-vercel.mjs
+
+      - name: Dependency audit (production, high and above)
+        continue-on-error: true
+        run: pnpm audit --prod --audit-level=high
+
+  e2e:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm --filter "./artifacts/life-planner" exec playwright install --with-deps chromium
+      - name: Run browser suites
+        working-directory: artifacts/life-planner
+        run: |
+          pnpm run test:e2e:journal
+          pnpm run test:e2e:tuklas
+          pnpm run test:e2e:planner
+          pnpm run test:e2e:memory
+          pnpm run test:e2e:backup
+          pnpm run test:e2e:calendar
+          pnpm run test:e2e:release-two
+          pnpm run test:e2e:recurrence
+          pnpm run test:e2e:a11y
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: artifacts/life-planner/test-results
+          retention-days: 7
