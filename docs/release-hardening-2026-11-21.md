@@ -41,7 +41,7 @@ pnpm audit --prod
 
 ## CI
 
-The workflow is in `.github/workflows/ci.yml`. Run 44892101881 on commit `6aa1260` passed both jobs: typecheck, unit tests and production builds, then the browser suites (including accessibility). The dependency audit step is report-only because the zod 3 advisory stays open.
+The workflow is in `.github/workflows/ci.yml`. Run 44892101881 on commit `6aa1260` passed both jobs: typecheck, unit tests and production builds, then the browser suites (including accessibility). The dependency audit step is report-only because the zod 3 advisory stays open. One later run failed on a flaky phone-width layout check in the Memory suite (it passed on rerun with identical code); the test now waits for fonts and layout, and run 44892821041 on commit `545c1e1` passed both jobs.
 
 ## Still open
 
