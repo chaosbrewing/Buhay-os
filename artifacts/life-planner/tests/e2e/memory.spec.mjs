@@ -267,7 +267,14 @@ test('on a phone the dialogs and the page fit the screen', async ({ page }) => {
     const box = element.getBoundingClientRect();
     return box.left >= 0 && box.right <= window.innerWidth;
   });
-  const noSideScroll = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  // Wait for web fonts and two animation frames first: measuring while text is still reflowing made this
+  // check flaky on slower machines (it passed or failed on identical code).
+  const noSideScroll = () =>
+    page.evaluate(async () => {
+      await document.fonts.ready;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return document.documentElement.scrollWidth <= window.innerWidth;
+    });
 
   expect(await noSideScroll()).toBe(true);
   await page.getByTestId('button-remember-note-n1').click();
