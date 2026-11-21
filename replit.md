@@ -59,7 +59,6 @@ Recorded decisions are in `.agents/memory/` (index: `MEMORY.md`): E2E encryption
 - Web unit tests preload `src/test-timezone.mjs` (`Pacific/Kiritimati`). Don't rely on a shell `TZ=` prefix; it doesn't work on Windows.
 - API route tests that import workspace TypeScript must be bundled with esbuild first (see the `test` script).
 - Keep Expo Router `Stack.Screen` entries as direct children; a fragment crashes the web preview.
-- Browser suites whose harness imports `App.tsx` (recurrence, memory) need `attached_assets/buhay-os-lockup-cropped.png`, which wasn't importable from Replit. Without it Vite fails to load the page.
 - Some binary assets (logo, film media, mobile icons) weren't importable from Replit. See `REPLIT-IMPORT.md`.
 
 ## Pointers

@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#eef4ee"/>
-  <path d="M11 52V44A8 8 0 0 1 19 36V44A8 8 0 0 1 11 52Z" fill="#8fbf9f"/>
-  <path d="M26 52V32A8 8 0 0 1 34 24V44A8 8 0 0 1 26 52Z" fill="#2f7d55"/>
-  <path d="M41 52V20A8 8 0 0 1 49 12V44A8 8 0 0 1 41 52Z" fill="#1f5e3a"/>
-  <circle cx="53" cy="49" r="4" fill="#b8913a"/>
-</svg>
