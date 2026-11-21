@@ -62,3 +62,12 @@ The workflow is in `.github/workflows/ci.yml`. Run 44892101881 on commit `6aa126
 - Bumped the workspace `zod` to ^4.6.7 and `@hookform/resolvers` to ^7.0.7 (7.0.8 was blocked by the one-day minimum release age rule).
 - Code changes were small: the Projects form schema moved to `src/projects-schema.ts` and now has 5 unit tests that run it through the real resolver (valid input, trimming, length limits, status values, and that error messages never repeat what was typed). The generated API schemas needed no changes.
 - Evidence: typecheck clean across the workspace; unit tests contract 130, web 137, mobile 41, API 62; browser suites 66 of 66; API isolation test 13 of 13 on the zod 4 build; production builds pass.
+
+## How production is deployed (as of 2026-11-21)
+
+Deploys are manual and prebuilt; nothing deploys on a git push.
+
+- **API:** `node artifacts/api-server/build-vercel.mjs`, then `vercel deploy --prebuilt --prod --yes` from the repository root (needs `vercel login`).
+- **Web app and Worker:** build `artifacts/life-planner` with `PORT`, `BASE_PATH=/` and the production `VITE_CLERK_PUBLISHABLE_KEY`, then `wrangler deploy` from `artifacts/life-planner` (needs `wrangler login`).
+- The Vercel project `hanay-api` was disconnected from the GitHub repository. While connected, it tried to build the whole repository on every push and failed (the project is built locally), which showed as a red "Vercel" check on pull requests. The last good deployment kept serving throughout.
+- The zod 4 build was deployed to production on 2026-11-21 and checked live (landing, sign-in, `/api/healthz` 200, `/api/planner` 401, `www` redirect, security headers).
