@@ -56,3 +56,8 @@ Thumbs.db
 .env.local
 .env.*.local
 .neon
+
+# Vercel build output
+.vercel
+.vercel
+.env*
